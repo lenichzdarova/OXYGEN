@@ -20,7 +20,11 @@
 		},
 		{
 			"Name": "InventoryPlugin",
-			"Enabled": true			
+			"Enabled": true
+		},
+		{
+			"Name": "ModelContextProtocol",
+			"Enabled": true
 		}
 	]
 }
