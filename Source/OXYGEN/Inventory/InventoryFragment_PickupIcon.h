@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "LyraInventoryItemDefinition.h"
+#include "InventoryItemDefinition.h"
 #include "UObject/ObjectPtr.h"
 
 #include "InventoryFragment_PickupIcon.generated.h"
@@ -11,7 +11,7 @@ class UObject;
 class USkeletalMesh;
 
 UCLASS()
-class UInventoryFragment_PickupIcon : public ULyraInventoryItemFragment
+class UInventoryFragment_PickupIcon : public UInventoryItemFragment
 {
 	GENERATED_BODY()
 

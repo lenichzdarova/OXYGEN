@@ -17,13 +17,29 @@
 			"TargetAllowList": [
 				"Editor"
 			]
-		},
+		},		
 		{
-			"Name": "InventoryPlugin",
+			"Name": "ModelContextProtocol",
 			"Enabled": true
 		},
 		{
-			"Name": "ModelContextProtocol",
+			"Name": "GameplayAbilities",
+			"Enabled": true
+		},
+		{
+			"Name": "GameplayMessageRouter",
+			"Enabled": true
+		},
+		{
+			"Name": "ModularGameplay",
+			"Enabled": true
+		},
+		{
+			"Name": "CommonGame",
+			"Enabled": true
+		},
+		{
+			"Name": "CommonUser",
 			"Enabled": true
 		}
 	]

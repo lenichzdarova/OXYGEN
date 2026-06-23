@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "LyraInventoryItemDefinition.h"
+#include "InventoryItemDefinition.h"
 #include "Styling/SlateBrush.h"
 
 #include "InventoryFragment_QuickBarIcon.generated.h"
@@ -10,7 +10,7 @@
 class UObject;
 
 UCLASS()
-class UInventoryFragment_QuickBarIcon : public ULyraInventoryItemFragment
+class UInventoryFragment_QuickBarIcon : public UInventoryItemFragment
 {
 	GENERATED_BODY()
 

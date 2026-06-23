@@ -2,20 +2,20 @@
 
 #pragma once
 
-#include "LyraInventoryItemDefinition.h"
+#include "InventoryItemDefinition.h"
 #include "Templates/SubclassOf.h"
 
 #include "InventoryFragment_EquippableItem.generated.h"
 
-class ULyraEquipmentDefinition;
+class UEquipmentDefinition;
 class UObject;
 
 UCLASS()
-class UInventoryFragment_EquippableItem : public ULyraInventoryItemFragment
+class UInventoryFragment_EquippableItem : public UInventoryItemFragment
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY(EditAnywhere, Category=Lyra)
-	TSubclassOf<ULyraEquipmentDefinition> EquipmentDefinition;
+	TSubclassOf<UEquipmentDefinition> EquipmentDefinition;
 };

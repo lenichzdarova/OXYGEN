@@ -8,7 +8,33 @@ public class OXYGEN : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "InventoryPlugin" });
+		PublicDependencyModuleNames.AddRange(new string[]
+		{
+			"CommonGame",
+			"CommonUser",
+			"Core",
+			"CoreUObject",
+			"DeveloperSettings",
+			"Engine",
+			"EnhancedInput",
+			"GameFeatures",
+			"GameplayAbilities",
+			"GameplayMessageNodes",
+			"GameplayMessageRuntime",
+			"GameplayTags",
+			"GameplayTasks",
+			"InputCore",
+			"IrisCore",
+			"ModularGameplay",
+			"ModularGameplayActors",
+			"NetCommon",
+			"NetCore",
+			"Networking",
+			"Niagara",
+			"Slate",
+			"SlateCore",
+			"UMG"
+		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

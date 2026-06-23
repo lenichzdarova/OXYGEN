@@ -3,16 +3,16 @@
 #pragma once
 
 #include "GameplayTagContainer.h"
-#include "LyraInventoryItemDefinition.h"
+#include "InventoryItemDefinition.h"
 
 #include "InventoryFragment_SetStats.generated.h"
 
-class ULyraInventoryItemInstance;
+class UInventoryItemInstance;
 class UObject;
 struct FGameplayTag;
 
 UCLASS()
-class UInventoryFragment_SetStats : public ULyraInventoryItemFragment
+class UInventoryFragment_SetStats : public UInventoryItemFragment
 {
 	GENERATED_BODY()
 
@@ -21,7 +21,7 @@ protected:
 	TMap<FGameplayTag, int32> InitialItemStats;
 
 public:
-	virtual void OnInstanceCreated(ULyraInventoryItemInstance* Instance) const override;
+	virtual void OnInstanceCreated(UInventoryItemInstance* Instance) const override;
 
 	int32 GetItemStatByTag(FGameplayTag Tag) const;
 };
