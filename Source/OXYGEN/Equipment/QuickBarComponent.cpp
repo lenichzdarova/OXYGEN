@@ -9,6 +9,7 @@
 #include "OXYGEN/Inventory/InventoryFragment_EquippableItem.h"
 #include "OXYGEN/Inventory/InventoryItemInstance.h"
 #include "NativeGameplayTags.h"
+#include "GameFramework/Controller.h"
 #include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(QuickBarComponent)
@@ -16,8 +17,8 @@
 class FLifetimeProperty;
 class UEquipmentDefinition;
 
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Lyra_QuickBar_Message_SlotsChanged, "Lyra.QuickBar.Message.SlotsChanged");
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Lyra_QuickBar_Message_ActiveIndexChanged, "Lyra.QuickBar.Message.ActiveIndexChanged");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Lyra_QuickBar_Message_SlotsChanged, "QuickBar.Message.SlotsChanged");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Lyra_QuickBar_Message_ActiveIndexChanged, "QuickBar.Message.ActiveIndexChanged");
 
 UQuickBarComponent::UQuickBarComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
