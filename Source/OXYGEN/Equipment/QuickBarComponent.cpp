@@ -17,8 +17,8 @@
 class FLifetimeProperty;
 class UEquipmentDefinition;
 
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Lyra_QuickBar_Message_SlotsChanged, "QuickBar.Message.SlotsChanged");
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Lyra_QuickBar_Message_ActiveIndexChanged, "QuickBar.Message.ActiveIndexChanged");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_QuickBar_Message_SlotsChanged, "QuickBar.Message.SlotsChanged");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_QuickBar_Message_ActiveIndexChanged, "QuickBar.Message.ActiveIndexChanged");
 
 UQuickBarComponent::UQuickBarComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -210,7 +210,7 @@ void UQuickBarComponent::OnRep_Slots()
 	Message.Slots = Slots;
 
 	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
-	MessageSystem.BroadcastMessage(TAG_Lyra_QuickBar_Message_SlotsChanged, Message);
+	MessageSystem.BroadcastMessage(TAG_QuickBar_Message_SlotsChanged, Message);
 }
 
 void UQuickBarComponent::OnRep_ActiveSlotIndex()
@@ -220,6 +220,6 @@ void UQuickBarComponent::OnRep_ActiveSlotIndex()
 	Message.ActiveIndex = ActiveSlotIndex;
 
 	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
-	MessageSystem.BroadcastMessage(TAG_Lyra_QuickBar_Message_ActiveIndexChanged, Message);
+	MessageSystem.BroadcastMessage(TAG_QuickBar_Message_ActiveIndexChanged, Message);
 }
 

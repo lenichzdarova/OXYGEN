@@ -15,7 +15,7 @@
 class FLifetimeProperty;
 struct FReplicationFlags;
 
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Lyra_Inventory_Message_StackChanged, "Lyra.Inventory.Message.StackChanged");
+UE_DEFINE_GAMEPLAY_TAG(TAG_Inventory_Message_StackChanged, "Inventory.Message.StackChanged");
 
 //////////////////////////////////////////////////////////////////////
 // FLyraInventoryEntry
@@ -74,7 +74,7 @@ void FInventoryList::BroadcastChangeMessage(FInventoryEntry& Entry, int32 OldCou
 	Message.Delta = NewCount - OldCount;
 
 	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(OwnerComponent->GetWorld());
-	MessageSystem.BroadcastMessage(TAG_Lyra_Inventory_Message_StackChanged, Message);
+	MessageSystem.BroadcastMessage(TAG_Inventory_Message_StackChanged, Message);
 }
 
 UInventoryItemInstance* FInventoryList::AddEntry(TSubclassOf<UInventoryItemDefinition> ItemDef, int32 StackCount)
@@ -109,7 +109,8 @@ UInventoryItemInstance* FInventoryList::AddEntry(TSubclassOf<UInventoryItemDefin
 
 void FInventoryList::AddEntry(UInventoryItemInstance* Instance)
 {
-	unimplemented();
+	auto NewInstance = AddEntry(Instance->GetItemDef(), 1);
+	NewInstance->StatTags = Instance->StatTags;
 }
 
 void FInventoryList::RemoveEntry(UInventoryItemInstance* Instance)
@@ -146,7 +147,11 @@ UInventoryManagerComponent::UInventoryManagerComponent(const FObjectInitializer&
 	: Super(ObjectInitializer)
 	, InventoryList(this)
 {
-	SetIsReplicatedByDefault(true);
+	SetIsReplicatedByDefault(true);	
+	if (auto Owner = GetOwner())
+	{
+		GridManager = Owner->GetComponentByClass<UInventoryGrid>();
+	}
 }
 
 void UInventoryManagerComponent::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
@@ -159,6 +164,7 @@ void UInventoryManagerComponent::GetLifetimeReplicatedProps(TArray< FLifetimePro
 bool UInventoryManagerComponent::CanAddItemDefinition(TSubclassOf<UInventoryItemDefinition> ItemDef, int32 StackCount)
 {
 	//@TODO: Add support for stack limit / uniqueness checks / etc...
+	
 	return true;
 }
 
@@ -167,7 +173,7 @@ UInventoryItemInstance* UInventoryManagerComponent::AddItemDefinition(TSubclassO
 	UInventoryItemInstance* Result = nullptr;
 	if (ItemDef != nullptr)
 	{
-		Result = InventoryList.AddEntry(ItemDef, StackCount);
+		Result = InventoryList.AddEntry(ItemDef, StackCount);		
 		
 		if (IsUsingRegisteredSubObjectList() && IsReadyForReplication() && Result)
 		{
@@ -179,6 +185,13 @@ UInventoryItemInstance* UInventoryManagerComponent::AddItemDefinition(TSubclassO
 
 void UInventoryManagerComponent::AddItemInstance(UInventoryItemInstance* ItemInstance)
 {
+	if (GridManager)
+	{
+		if (!GridManager->TryAddItem(ItemInstance))
+		{
+			return;
+		}
+	}
 	InventoryList.AddEntry(ItemInstance);
 	if (IsUsingRegisteredSubObjectList() && IsReadyForReplication() && ItemInstance)
 	{

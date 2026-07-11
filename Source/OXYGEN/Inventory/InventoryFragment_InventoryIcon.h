@@ -20,4 +20,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Appearance)
 	FText DisplayNameWhenEquipped;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Appearance)
+	FIntPoint ItemSize = FIntPoint(1, 1);
 };

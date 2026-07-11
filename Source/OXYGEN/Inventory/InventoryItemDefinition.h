@@ -26,7 +26,7 @@ public:
 //////////////////////////////////////////////////////////////////////
 
 /**
- * ULyraInventoryItemDefinition
+ * UInventoryItemDefinition
  */
 UCLASS(Blueprintable, Const, Abstract)
 class UInventoryItemDefinition : public UObject

@@ -2,9 +2,13 @@
 
 #pragma once
 
+#include "InventoryGrid.h"
+#include "NativeGameplayTags.h"
 #include "Components/ActorComponent.h"
 #include "Net/Serialization/FastArraySerializer.h"
 #include "InventoryManagerComponent.generated.h"
+
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Inventory_Message_StackChanged);
 
 class UInventoryItemDefinition;
 class UInventoryItemInstance;
@@ -14,6 +18,7 @@ struct FFrame;
 struct FInventoryList;
 struct FNetDeltaSerializeInfo;
 struct FReplicationFlags;
+
 
 /** A message when an item is added to the inventory */
 USTRUCT(BlueprintType)
@@ -119,7 +124,7 @@ struct TStructOpsTypeTraits<FInventoryList> : public TStructOpsTypeTraitsBase2<F
 /**
  * Manages an inventory
  */
-UCLASS(MinimalAPI, BlueprintType)
+UCLASS(MinimalAPI, BlueprintType, meta=(BlueprintSpawnableComponent))
 class UInventoryManagerComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -156,6 +161,8 @@ public:
 private:
 	UPROPERTY(Replicated)
 	FInventoryList InventoryList;
-};
 
+	UPROPERTY()
+	TObjectPtr<UInventoryGrid> GridManager = nullptr;
+};
 
