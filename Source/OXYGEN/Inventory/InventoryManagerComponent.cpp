@@ -109,7 +109,8 @@ UInventoryItemInstance* FInventoryList::AddEntry(TSubclassOf<UInventoryItemDefin
 
 void FInventoryList::AddEntry(UInventoryItemInstance* Instance)
 {
-	auto NewInstance = AddEntry(Instance->GetItemDef(), 1);
+	int32 DefaultStackCount = 1;
+	auto NewInstance = AddEntry(Instance->GetItemDef(), DefaultStackCount);
 	NewInstance->StatTags = Instance->StatTags;
 }
 

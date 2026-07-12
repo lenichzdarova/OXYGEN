@@ -8,7 +8,7 @@
 #include "Components/ActorComponent.h"
 #include "InventoryGrid.generated.h"
 
-USTRUCT()
+USTRUCT(Blueprintable)
 struct FItemPlacement
 {
 	GENERATED_BODY()
@@ -35,10 +35,15 @@ struct FItemPlacement
 		InitPosition = FIntPoint(0, 0);		
 		Rotation = 0;
 	}
+	
+	bool IsValid() const
+	{
+		return ItemInstance != nullptr;
+	}
 };
 
 
-USTRUCT()
+USTRUCT(Blueprintable)
 struct FInventoryGridCell
 {
 	GENERATED_BODY()
@@ -56,8 +61,17 @@ class OXYGEN_API UInventoryGrid : public UActorComponent
 {
 	GENERATED_BODY()	
 	
+protected:
+	TArray<FInventoryGridCell> GridCells;
+	TArray<FItemPlacement> Placements;	
+	
 public:
 	UFUNCTION(BlueprintCallable)
 	virtual bool TryAddItem(UInventoryItemInstance* ItemInstance);
 	
+	UFUNCTION(BlueprintCallable)
+	virtual TArray<FInventoryGridCell> GetGridCells() const { return GridCells; }
+	
+	UFUNCTION(BlueprintCallable)
+	virtual TArray<FItemPlacement> GetPlacements() const { return Placements; }	
 };

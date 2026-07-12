@@ -30,11 +30,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	int32 Height = 8;
 	UPROPERTY(EditAnywhere)
-	int32 Width = 6;	
-
-protected:
-	TArray<FInventoryGridCell> GridCells;
-	TArray<FItemPlacement> Placements;	
+	int32 Width = 6;
 	
 	//gpt	
 	
@@ -61,9 +57,8 @@ private:
 
 	FItemPlacement* FindPlacement(	UInventoryItemInstance* Item);
 
-public:	
-	
-	bool TryAddItem(UInventoryItemInstance* ItemInstance) override;
+public:
+	virtual bool TryAddItem(UInventoryItemInstance* ItemInstance) override;
 	
 protected:
 

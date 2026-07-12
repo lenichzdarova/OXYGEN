@@ -13,28 +13,33 @@ UTetrisGrid::UTetrisGrid()
 	GridCells.AddDefaulted(Height * Width);
 }
 
-
-// Called when the game starts
 void UTetrisGrid::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// ...
-	
 }
 
-
-// Called every frame
 void UTetrisGrid::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
 }
 
 //GPT
 
 //поиск первого свободного плейсмента из пула и создание нового, если не найдено
+
+
+bool UTetrisGrid::TryAddItem(UInventoryItemInstance* ItemInstance)
+{	
+	if (!ItemInstance || !HaveEnoughSpaceWithoutGeometryCheck(ItemInstance))
+	{
+		return false;
+	}
+	
+	return TryOptimizeGridForItem(ItemInstance);
+}
+
+
+
 int32 UTetrisGrid::AcquirePlacementIndex()
 {
 	for (int32 i = 0; i < Placements.Num(); ++i)
@@ -294,17 +299,6 @@ FItemPlacement* UTetrisGrid::FindPlacement( UInventoryItemInstance* Item)
 
 	return nullptr;
 }
-
-bool UTetrisGrid::TryAddItem(UInventoryItemInstance* ItemInstance)
-{	
-	if (!ItemInstance || !HaveEnoughSpaceWithoutGeometryCheck(ItemInstance))
-	{
-		return false;
-	}
-	
-	return TryOptimizeGridForItem(ItemInstance);
-}
-
 
 bool UTetrisGrid::HaveEnoughSpaceWithoutGeometryCheck(UInventoryItemInstance* ItemInstance)
 {
