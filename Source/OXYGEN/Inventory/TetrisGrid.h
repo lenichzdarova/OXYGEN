@@ -6,68 +6,78 @@
 #include "InventoryGrid.h"
 #include "TetrisGrid.generated.h"
 
-
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class OXYGEN_API UTetrisGrid : public UInventoryGrid
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this component's properties
 	UTetrisGrid();
 
 protected:
-	// Called when the game starts
 	virtual void BeginPlay() override;
 
 public:
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
-	                           FActorComponentTickFunction* ThisTickFunction) override;
-		
-	
-public:
 	UPROPERTY(EditAnywhere)
 	int32 Height = 8;
+
 	UPROPERTY(EditAnywhere)
 	int32 Width = 6;
-	
-	//gpt	
-	
-private:
 
-	//поиск первого свободного плейсмента в пуле, если не наден - создание дефолтного
-	int32 AcquirePlacementIndex();
-
-	bool PackItems(	const TArray<UInventoryItemInstance*>& Items);
-
-	bool TryPackItemRecursive(const TArray<UInventoryItemInstance*>& Items,	int32 ItemIndex);
-
+	/**
+	 * Client-side preview. Does not change the grid and may be called every time
+	 * the dragged item changes cell.
+	 */
+	UFUNCTION(BlueprintPure, Category = "Inventory|Grid")
 	bool CanPlaceItemAt(UInventoryItemInstance* Item, FIntPoint Position) const;
 
-	bool TryPlaceItemAt( UInventoryItemInstance* Item,	FIntPoint Position);
+	/** In a tetris grid, CellIndex identifies the item's upper-left cell. */
+	virtual bool CanPlaceItemAtCell(UInventoryItemInstance* ItemInstance, int32 CellIndex) const override;
 
-	void RemovePlacedItem(	UInventoryItemInstance* Item);
+	/** In a tetris grid, CellIndex identifies the item's upper-left cell. */
+	virtual bool TryPlaceItemAtCellByIndex(UInventoryItemInstance* ItemInstance, int32 CellIndex) override;
 
-	void ClearGrid();
+	
+	
+	
+	
+	
+	/** Client-side search for a suggested position. Does not change the grid. */
+	UFUNCTION(BlueprintPure, Category = "Inventory|Grid")
+	bool FindFirstAvailablePosition(UInventoryItemInstance* Item, FIntPoint& OutPosition) const;
 
-	void RebuildGridCells();
+	/**
+	 * Changes stored position only. Call this on the server after it validates
+	 * the position submitted by the client.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Grid")
+	bool TrySetItemPosition(UInventoryItemInstance* Item, FIntPoint Position);
 
-	int32 GetCellIndex(	int32 X, int32 Y) const;
+	/**
+	 * Builds a complete packing proposal without changing this grid. Intended
+	 * for client-side auto-loot and UI calculations.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Grid")
+	bool BuildAutoPlacementLayout(UInventoryItemInstance* Item, TArray<FItemPlacement>& OutPlacements) const;
 
-	FItemPlacement* FindPlacement(	UInventoryItemInstance* Item);
+	/**
+	 * Validates and stores a complete layout. The network layer must call this
+	 * on the server after it has checked that every item belongs to the owner.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Grid")
+	bool TryApplyPlacementLayout(const TArray<FItemPlacement>& NewPlacements);
 
-public:
+	/** Places at the first free position only; it never runs auto-packing. */
 	virtual bool TryAddItem(UInventoryItemInstance* ItemInstance) override;
-	
-protected:
 
-	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	bool TryOptimizeGridForItem( UInventoryItemInstance* NewItem);
-	
-	virtual bool HaveEnoughSpaceWithoutGeometryCheck(UInventoryItemInstance* ItemInstance);
-	int32 GetEmptyCellCount();
-	int32 GetBusyCellCount();
-	int32 GetItemSizeInCells(UInventoryItemInstance* ItemInstance);
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Grid")
+	void RemovePlacedItem(UInventoryItemInstance* Item);
+
+private:
+	int32 AcquirePlacementIndex();
+	int32 GetCellIndex(int32 X, int32 Y) const;
+	bool HasValidItemSize(const UInventoryItemInstance* Item) const;
+	bool CanPlaceItemInCells(UInventoryItemInstance* Item, FIntPoint Position, const TArray<int32>& Cells) const;
+	bool TryBuildAutoPlacementRecursive(const TArray<UInventoryItemInstance*>& Items, int32 ItemIndex, TArray<int32>& Cells, TArray<FItemPlacement>& OutPlacements) const;
+	bool BuildGridCellsForLayout(const TArray<FItemPlacement>& Layout, TArray<FInventoryGridCell>& OutCells) const;
 };
-
