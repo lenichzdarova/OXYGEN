@@ -7,7 +7,7 @@
 #include "ActorInteractableComponent.generated.h"
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class MS_API UActorInteractableComponent : public USceneComponent
+class OXYGEN_API UActorInteractableComponent : public USceneComponent
 {
 	GENERATED_BODY()
 

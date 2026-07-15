@@ -17,7 +17,7 @@ class UInteractable : public UInterface
 /**
  * 
  */
-class MS_API IInteractable
+class OXYGEN_API IInteractable
 {
 	GENERATED_BODY()
 

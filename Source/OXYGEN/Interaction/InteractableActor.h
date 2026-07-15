@@ -9,7 +9,7 @@
 #include "InteractableActor.generated.h"
 
 UCLASS(Blueprintable)
-class MS_API AInteractableActor : public AActor, public IInteractable
+class OXYGEN_API AInteractableActor : public AActor, public IInteractable
 {
 	GENERATED_BODY()
 
