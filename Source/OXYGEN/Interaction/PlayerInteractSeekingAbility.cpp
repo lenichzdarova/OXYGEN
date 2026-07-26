@@ -10,24 +10,23 @@
 UPlayerInteractSeekingAbility::UPlayerInteractSeekingAbility()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-    NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;     
+    NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalOnly;    
+    NetSecurityPolicy = EGameplayAbilityNetSecurityPolicy::ClientOrServer;
 }
 
 void UPlayerInteractSeekingAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
         const FGameplayAbilityActorInfo* ActorInfo,
         const FGameplayAbilityActivationInfo ActivationInfo,
         const FGameplayEventData* TriggerEventData)
-{
+{     
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
+    
     // Запускаем трассировку
     TraceTask = UAbilityTask_WaitForInteractableTarget::WaitForInteractableTarget(
         this, 500.0f, ECC_Visibility, 0.1f);
     TraceTask->OnTargetFound.AddDynamic(this, &UPlayerInteractSeekingAbility::OnTargetFound);
     TraceTask->OnTargetLost.AddDynamic(this, &UPlayerInteractSeekingAbility::OnTargetLost);
-    TraceTask->ReadyForActivation();    
-    
-    GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Yellow, TEXT("Ability activated"));   
+    TraceTask->ReadyForActivation();        
     // Не завершаем способность, она должна висеть постоянно
 }
 
@@ -43,7 +42,7 @@ void UPlayerInteractSeekingAbility::EndAbility(const FGameplayAbilitySpecHandle 
 void UPlayerInteractSeekingAbility::InputPressed(const FGameplayAbilitySpecHandle Handle,
     const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
-    Super::InputPressed(Handle, ActorInfo, ActivationInfo);    
+    Super::InputPressed(Handle, ActorInfo, ActivationInfo);  
     
     AActor* Target = CurrentInteractableTarget.Get();
     if (Target)
@@ -73,27 +72,7 @@ void UPlayerInteractSeekingAbility::ActivateExecutionAbility(AActor* Target)
 {   
     UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();    
     if (!ASC) return;
-    FGameplayTag AbilityTag = DefaultAbilityTag;
-    /*
-    if (auto AvatarActor = GetAvatarActorFromActorInfo())
-    {
-        if (UItemInHandControllerComponentV2* HandController = AvatarActor->FindComponentByClass<UItemInHandControllerComponentV2>())
-        {
-           if (auto Item = HandController->GetItemInHand())
-           {
-               if (auto ItemInHandComponent = Item->FindComponentByClass<UItemInHandComponent>())
-               {
-                   AbilityTag = ItemInHandComponent->GetItemData().AbilityTriggerTag;
-               }
-               else
-               {
-                   GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, TEXT("No ItemInHandComponent"));
-               }
-           } 
-        }
-    }*/
-    
-    
+    FGameplayTag AbilityTag = DefaultAbilityTag;    
     
     // Подготавливаем событие для передачи цели
     FGameplayEventData EventData;
@@ -103,5 +82,5 @@ void UPlayerInteractSeekingAbility::ActivateExecutionAbility(AActor* Target)
     EventData.OptionalObject = Target; // можно и так
 
     // Активируем способность через событие
-    auto Result = ASC->HandleGameplayEvent(EventData.EventTag, &EventData);    
+    auto Result = ASC->HandleGameplayEvent(EventData.EventTag, &EventData);     
 }

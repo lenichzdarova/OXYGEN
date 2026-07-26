@@ -13,4 +13,7 @@ UCLASS()
 class OXYGEN_API AO2_PlayerController : public APlayerController
 {
 	GENERATED_BODY()
+	
+protected:
+	virtual void OnPossess(APawn* InPawn) override;
 };

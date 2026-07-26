@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "O2_SaveManager.h"
 #include "GameFramework/GameModeBase.h"
 #include "O2_GameMode.generated.h"
 
@@ -17,4 +18,25 @@ class OXYGEN_API AO2_GameMode : public AGameModeBase
 	public:
 	
 	AO2_GameMode();
+	
+public:
+
+	virtual void BeginPlay() override;
+
+	virtual void PostLogin(	APlayerController* NewPlayer) override;
+
+	virtual void Logout(AController* Exiting) override;
+
+protected:
+
+	void LoadWorldState();
+	void SaveWorldState();
+	void LoadPlayerData(APlayerController* Player);
+	void SavePlayerData(APlayerController* Player);
+
+private:
+
+	UPROPERTY()
+	TObjectPtr<UO2_SaveManager> SaveManager;
 };
+

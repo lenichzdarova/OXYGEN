@@ -7,5 +7,5 @@
 
 AO2_PlayerStateBase::AO2_PlayerStateBase()
 {
-	CreateDefaultSubobject<UO2_AbilitySystemComponent>("AbilitySystemComponent");
+	AbilitySystemComponent = CreateDefaultSubobject<UO2_AbilitySystemComponent>("AbilitySystemComponent");
 }

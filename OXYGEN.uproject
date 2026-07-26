@@ -17,7 +17,7 @@
 			"TargetAllowList": [
 				"Editor"
 			]
-		},		
+		},
 		{
 			"Name": "ModelContextProtocol",
 			"Enabled": true
@@ -40,6 +40,10 @@
 		},
 		{
 			"Name": "CommonUser",
+			"Enabled": true
+		},
+		{
+			"Name": "AIAssistant",
 			"Enabled": true
 		}
 	]

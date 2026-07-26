@@ -44,6 +44,6 @@ protected:
 
 	// Класс исполнительной способности, которую будем активировать
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	FGameplayTag DefaultAbilityTag = FGameplayTag::RequestGameplayTag("Ability.Interact");
+	FGameplayTag DefaultAbilityTag = FGameplayTag::RequestGameplayTag("GAS.Ability.Interact");
 	
 };

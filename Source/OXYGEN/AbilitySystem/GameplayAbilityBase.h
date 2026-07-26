@@ -9,8 +9,10 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Abstract)
 class OXYGEN_API UGameplayAbilityBase : public UGameplayAbility
 {
 	GENERATED_BODY()
+	
+	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 };

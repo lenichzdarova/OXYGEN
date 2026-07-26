@@ -4,6 +4,7 @@
 #include "Camera/PlayerCameraManager.h"
 #include "GameFramework/PlayerController.h"
 #include "Interactable.h" // предполагаем, что ваш интерфейс здесь
+#include "Engine/Engine.h"
 
 UAbilityTask_WaitForInteractableTarget::UAbilityTask_WaitForInteractableTarget()
 {
@@ -39,7 +40,8 @@ void UAbilityTask_WaitForInteractableTarget::OnDestroy(bool bInOwnerFinished)
 }
 
 void UAbilityTask_WaitForInteractableTarget::PerformTrace()
-{    
+{  
+    GEngine->AddOnScreenDebugMessage(22, 5.f, FColor::Red, TEXT("Performing trace"));
     UWorld* World = GetWorld();
     if (!World) return;
 
