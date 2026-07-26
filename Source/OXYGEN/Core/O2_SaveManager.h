@@ -3,15 +3,45 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameFramework/SaveGame.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "O2_SaveManager.generated.h"
 
+/** Абстрактные данные одного игрока внутри общего сейва */
+USTRUCT(BlueprintType)
+struct FO2_PlayerSaveEntry
+{
+	GENERATED_BODY()
 
-class UWorldSaveGame;
-class UPlayerSaveGame;
-/**
- * 
- */
+	/** UniqueNetId.ToString() или другой стабильный id */
+	UPROPERTY(SaveGame, BlueprintReadOnly)
+	FString UniquePlayerId;
+
+	/** Произвольный payload игрока */
+	UPROPERTY(SaveGame)
+	TArray<uint8> PlayerData;
+};
+
+/** Один слот = мир + все игроки этой сессии */
+UCLASS()
+class OXYGEN_API UO2_SaveGame : public USaveGame
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(SaveGame, BlueprintReadOnly)
+	FString SlotName;
+
+	/** Payload мира */
+	UPROPERTY(SaveGame)
+	TArray<uint8> WorldData;
+
+	/** Все игроки, известные этому сейву */
+	UPROPERTY(SaveGame)
+	TMap<FString, FO2_PlayerSaveEntry> Players;
+};
+
+
 UCLASS()
 class OXYGEN_API UO2_SaveManager : public UGameInstanceSubsystem
 {
@@ -45,9 +75,9 @@ private:
 		FString CurrentSlotName;
 
 		UPROPERTY()
-		TObjectPtr<UWorldSaveGame> CurrentWorldSave;
+		TObjectPtr<UO2_SaveGame> CurrentWorldSave;
 
 		UPROPERTY()
-		TMap<FString, TObjectPtr<UPlayerSaveGame>> LoadedPlayerSaves;
+		TMap<FString, FO2_PlayerSaveEntry> LoadedPlayerSaves;
 	
 };
