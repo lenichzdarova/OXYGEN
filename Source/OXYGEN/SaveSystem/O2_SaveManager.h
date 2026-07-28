@@ -34,7 +34,7 @@ public:
 
 	/** Payload мира */
 	UPROPERTY(SaveGame)
-	TArray<uint8> WorldData;
+	TArray<uint8> WorldData;	
 
 	/** Все игроки, известные этому сейву */
 	UPROPERTY(SaveGame)
@@ -47,37 +47,19 @@ class OXYGEN_API UO2_SaveManager : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()	
 
-	public:
-
-		virtual void Initialize(FSubsystemCollectionBase& Collection) override;
-
-		// Создать новое сохранение
-		void CreateSaveSlot(const FString& SlotName);
-
-		// Загрузить сохранение
-		bool LoadSaveSlot(const FString& SlotName);
-
-		// Сохранить текущее состояние
-		void SaveCurrentSlot();
-
-		// Удалить сохранение
-		void DeleteSaveSlot(const FString& SlotName);
-
-		const FString& GetCurrentSlotName() const
-		{
-			return CurrentSlotName;
-		}
-
-private:
-
-		// Текущий выбранный слот
-		UPROPERTY()
-		FString CurrentSlotName;
-
-		UPROPERTY()
-		TObjectPtr<UO2_SaveGame> CurrentWorldSave;
-
-		UPROPERTY()
-		TMap<FString, FO2_PlayerSaveEntry> LoadedPlayerSaves;
+public:
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	
+	void SaveGame();
+	void LoadGame();
+	
+private:
+	
+	void CollectWorldData();
+	void CollectActorData();
+
+	
+private:
+	UPROPERTY()
+	FString CurrentSlotName;		
 };
