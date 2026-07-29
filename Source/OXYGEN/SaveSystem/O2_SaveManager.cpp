@@ -2,3 +2,8 @@
 
 
 #include "O2_SaveManager.h"
+
+void UO2_SaveManager::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+}
