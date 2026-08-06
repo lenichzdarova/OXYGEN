@@ -53,6 +53,8 @@ public:
 	void SaveGame();
 	void LoadGame();
 	
+	TArray<UO2_SaveGame*> GetSavedGames();
+	
 private:
 	
 	void CollectWorldData();

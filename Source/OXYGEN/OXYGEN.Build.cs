@@ -12,6 +12,7 @@ public class OXYGEN : ModuleRules
 		{
 			"CommonGame",
 			"CommonUser",
+			"CommonUI",
 			"Core",
 			"CoreUObject",
 			"DeveloperSettings",
@@ -42,5 +43,18 @@ public class OXYGEN : ModuleRules
 
 		// Steam OSS is loaded at runtime when DefaultPlatformService=Steam
 		DynamicallyLoadedModuleNames.Add("OnlineSubsystemSteam");
+		
+		PublicIncludePaths.AddRange(new string[]
+		{
+			System.IO.Path.Combine(ModuleDirectory, "AbilitySystem"),
+			System.IO.Path.Combine(ModuleDirectory, "Character"),
+			System.IO.Path.Combine(ModuleDirectory, "Core"),
+			System.IO.Path.Combine(ModuleDirectory, "Equipment"),
+			System.IO.Path.Combine(ModuleDirectory, "Interaction"),
+			System.IO.Path.Combine(ModuleDirectory, "Inventory"),
+			System.IO.Path.Combine(ModuleDirectory, "SaveSystem"),
+			System.IO.Path.Combine(ModuleDirectory, "System"),
+			System.IO.Path.Combine(ModuleDirectory, "UI"),
+		});
 	}
 }
