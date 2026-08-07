@@ -35,6 +35,5 @@ protected:
 	UFUNCTION()
 	void OnCreateNewGameButtonClicked();
 	UFUNCTION()
-	void OnCreateSavedGameButtonClicked(UO2_SaveGame* InButton);
-	
+	void OnCreateSavedGameButtonClicked(UO2_SaveGame* InSavedGame);	
 };

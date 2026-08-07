@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "O2_StartGameWidget.h"
-
+#include "O2_SessionSubsystem.h"
 #include "O2_SaveManager.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -27,7 +27,7 @@ void UO2_StartGameWidget::CreateButtonsForSavedWorlds()
 	}	
 	auto Widget = CreateWidget<UCommonButtonBase>(this, CreateNewGameButton);
 	ButtonContainer->AddChildToVerticalBox(Widget);
-	Widget->OnClicked().AddUObject(this, &UO2_StartGameWidget::OnCreateNewGameButtonClicked);
+	Widget->OnClicked().AddUFunction(this, FName("OnCreateNewGameButtonClicked"));
 }
 
 void UO2_StartGameWidget::GetSaveGameNames(TArray<FString>& SlotNames)
@@ -50,9 +50,13 @@ void UO2_StartGameWidget::GetSaveGameNames(TArray<FString>& SlotNames)
 
 void UO2_StartGameWidget::OnCreateNewGameButtonClicked()
 {
+	auto SessionSubsystem = GetGameInstance()->GetSubsystem<UO2_SessionSubsystem>();
+	SessionSubsystem->HostNewGameSession(GetOwningPlayer());
 }
 
-void UO2_StartGameWidget::OnCreateSavedGameButtonClicked(UO2_SaveGame* InButton)
+void UO2_StartGameWidget::OnCreateSavedGameButtonClicked(UO2_SaveGame* InSavedGame)
 {
+	auto SessionSubsystem = GetGameInstance()->GetSubsystem<UO2_SessionSubsystem>();
+	SessionSubsystem->HostNewGameSession(GetOwningPlayer());
 }
 

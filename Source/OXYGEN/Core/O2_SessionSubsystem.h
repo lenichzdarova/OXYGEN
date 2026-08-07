@@ -7,9 +7,6 @@
 
 class APlayerController;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FO2_OnFindSessionsComplete, bool, bSucceeded, const TArray<UCommonSession_SearchResult*>&, Results);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FO2_OnHostSessionComplete, bool, bSucceeded);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FO2_OnJoinSessionComplete, bool, bSucceeded);
 
 /**
  * OXYGEN session facade over CommonSession + OnlineSubsystemSteam.
@@ -22,11 +19,18 @@ class OXYGEN_API UO2_SessionSubsystem : public UCommonSessionSubsystem
 
 	public:
 		UO2_SessionSubsystem();
-
+	
+	UFUNCTION(BlueprintCallable, Category = "OXYGEN|Session")
+	void HostNewGameSession(APlayerController* HostingPlayer);
+		
 	virtual UCommonSession_HostSessionRequest* CreateOnlineHostSessionRequest() override;
+	virtual UCommonSession_SearchSessionRequest* CreateOnlineSearchSessionRequest() override;
+	
+	
+	
 
 	UPROPERTY(Config, EditAnywhere, Category = "OXYGEN|Session")
-	FName DefaultMapPrimaryName = TEXT("L_Test_Mechanics");
+	FName DefaultMapPrimaryName = TEXT("/Game/Maps/L_Test_Mechanics");
 
 	UPROPERTY(Config, EditAnywhere, Category = "OXYGEN|Session")
 	int32 DefaultMaxPlayers = 4;
