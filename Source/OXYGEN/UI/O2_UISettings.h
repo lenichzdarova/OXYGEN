@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CommonActivatableWidget.h"
+#include "CommonUIExtensions.h"
 #include "GameUIPolicy.h"
 #include "NativeGameplayTags.h"
 #include "Engine/DeveloperSettings.h"
@@ -31,6 +33,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, Config, Category = "UI")
 	TSoftClassPtr<UGameUIPolicy> UIPolicyClass;
-
+	
+	UPROPERTY(EditAnywhere, Config, Category = "UI")
+	TSoftClassPtr<UCommonActivatableWidget> MainMenuWidgetClass;
+	
 	virtual FName GetCategoryName() const override { return TEXT("Game"); }
 };

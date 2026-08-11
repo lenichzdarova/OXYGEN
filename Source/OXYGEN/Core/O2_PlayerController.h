@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CommonPlayerController.h"
 #include "GameFramework/PlayerController.h"
 #include "O2_PlayerController.generated.h"
 
@@ -13,7 +14,7 @@ class UWorld;
  * Player controller with Steam session Host / Find / Join helpers.
  */
 UCLASS()
-class OXYGEN_API AO2_PlayerController : public APlayerController
+class OXYGEN_API AO2_PlayerController : public ACommonPlayerController
 {
 	GENERATED_BODY()
 
