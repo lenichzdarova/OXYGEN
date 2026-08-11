@@ -23,9 +23,8 @@ void UO2_SessionSubsystem::HostNewGameSession(APlayerController* HostingPlayer)
 	if (UO2_GameInstance* O2GI = Cast<UO2_GameInstance>(GetGameInstance()))
 	{
 		O2GI->EnsureOnlineUserReady(0);
-	}
-
-	UCommonSession_HostSessionRequest* Request = CreateOnlineHostSessionRequest();
+	}	
+	auto Request = CreateOnlineHostSessionRequest();	
 	HostSession(HostingPlayer, Request);
 }
 

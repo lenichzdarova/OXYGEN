@@ -2,8 +2,7 @@
 
 
 #include "InventoryGrid.h"
-
-#include "IPropertyTable.h"
+//#include "IPropertyTable.h"
 #include "Engine/World.h"
 
 

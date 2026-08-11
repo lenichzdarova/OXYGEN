@@ -51,7 +51,12 @@ void UO2_StartGameWidget::GetSaveGameNames(TArray<FString>& SlotNames)
 void UO2_StartGameWidget::OnCreateNewGameButtonClicked()
 {
 	auto SessionSubsystem = GetGameInstance()->GetSubsystem<UO2_SessionSubsystem>();
-	SessionSubsystem->HostNewGameSession(GetOwningPlayer());
+	SessionSubsystem->OnCreateSessionCompleteEvent.AddUObject(this, &UO2_StartGameWidget::OnSessionCreateComplete);
+	SessionSubsystem->HostNewGameSession(GetOwningPlayer());	
+}
+
+void UO2_StartGameWidget::OnSessionCreateComplete(const FOnlineResultInformation& Result)
+{
 }
 
 void UO2_StartGameWidget::OnCreateSavedGameButtonClicked(UO2_SaveGame* InSavedGame)

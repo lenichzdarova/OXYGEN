@@ -5,8 +5,10 @@
 #include "CoreMinimal.h"
 #include "CommonActivatableWidget.h"
 #include "CommonButtonBase.h"
+#include "CommonUserTypes.h"
 #include "O2_SaveManager.h"
 #include "Components/VerticalBox.h"
+#include "Widgets/CommonActivatableWidgetContainer.h"
 #include "O2_StartGameWidget.generated.h"
 
 /**
@@ -20,6 +22,10 @@ class OXYGEN_API UO2_StartGameWidget : public UCommonActivatableWidget
 	
 	virtual void NativeConstruct() override;
 	
+public:
+	UFUNCTION(BlueprintCallable)
+	void SetWidgetStack(UCommonActivatableWidgetStack* InWidgetStack) {WidgetStack = InWidgetStack;};
+	
 protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -27,13 +33,20 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<UCommonButtonBase> CreateNewGameButton;
 	UPROPERTY(meta = (BindWidget), BlueprintReadWrite)
-	TObjectPtr<UVerticalBox> ButtonContainer;
+	TObjectPtr<UVerticalBox> ButtonContainer;	
+	
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<UCommonActivatableWidgetStack> WidgetStack;
 	
 	void CreateButtonsForSavedWorlds();
 	void GetSaveGameNames(TArray<FString>& SlotNames);
 	
 	UFUNCTION()
 	void OnCreateNewGameButtonClicked();
+	void OnSessionCreateComplete(const FOnlineResultInformation& Result);	
+	
 	UFUNCTION()
 	void OnCreateSavedGameButtonClicked(UO2_SaveGame* InSavedGame);	
+	
+	
 };

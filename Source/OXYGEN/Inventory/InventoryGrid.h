@@ -17,7 +17,7 @@ struct FItemPlacement
 	TObjectPtr<UInventoryItemInstance> ItemInstance = nullptr;
 	
 	UPROPERTY(BlueprintReadOnly)
-	FIntPoint InitPosition;
+	FIntPoint InitPosition = FIntPoint::ZeroValue;
 	
 	FIntPoint GetSize() const
 	{

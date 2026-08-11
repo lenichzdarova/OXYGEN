@@ -20,7 +20,6 @@ public class OXYGEN : ModuleRules
 			"EnhancedInput",
 			"GameFeatures",
 			"GameplayAbilities",
-			"GameplayMessageNodes",
 			"GameplayMessageRuntime",
 			"GameplayTags",
 			"GameplayTasks",
