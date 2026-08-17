@@ -38,15 +38,19 @@ protected:
 	UPROPERTY(BlueprintReadWrite)
 	TObjectPtr<UCommonActivatableWidgetStack> WidgetStack;
 	
+	// old games
 	void CreateButtonsForSavedWorlds();
 	void GetSaveGameNames(TArray<FString>& SlotNames);
 	
 	UFUNCTION()
+	void OnCreateSavedGameButtonClicked(UO2_SaveGame* InSavedGame);	
+	
+	// new game
+	UFUNCTION()
 	void OnCreateNewGameButtonClicked();
 	void OnSessionCreateComplete(const FOnlineResultInformation& Result);	
 	
-	UFUNCTION()
-	void OnCreateSavedGameButtonClicked(UO2_SaveGame* InSavedGame);	
+	
 	
 	
 };

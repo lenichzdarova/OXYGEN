@@ -1,34 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GameSessionControlWidget.h"
+#include "FindSessionWidget.h"
 
 #include "O2_SessionSubsystem.h"
 #include "Engine/GameInstance.h"
 #include "GameFramework/PlayerController.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(GameSessionControlWidget)
-
-void UGameSessionControlWidget::HostSession()
-{
-	UGameInstance* GI = GetGameInstance();
-	APlayerController* PC = GetOwningPlayer();
-	if (!GI || !PC)
-	{
-		return;
-	}
-
-	UO2_SessionSubsystem* Sessions = GI->GetSubsystem<UO2_SessionSubsystem>();
-	if (!Sessions)
-	{
-		return;
-	}
-
-	UCommonSession_HostSessionRequest* Request = Sessions->CreateOnlineHostSessionRequest();
-	Sessions->HostSession(PC, Request);
-}
-
-void UGameSessionControlWidget::FindSessions()
+void UFindSessionWidget::FindSessions()
 {
 	UGameInstance* GI = GetGameInstance();
 	APlayerController* PC = GetOwningPlayer();
@@ -52,11 +31,11 @@ void UGameSessionControlWidget::FindSessions()
 	LastSearchResults.Reset();
 
 	ActiveSearchRequest = Sessions->CreateOnlineSearchSessionRequest();
-	ActiveSearchRequest->OnSearchFinished.AddUObject(this, &UGameSessionControlWidget::OnSearchFinished);
+	ActiveSearchRequest->OnSearchFinished.AddUObject(this, &UFindSessionWidget::OnSearchFinished);
 	Sessions->FindSessions(PC, ActiveSearchRequest);
 }
 
-void UGameSessionControlWidget::OnSearchFinished(bool bSucceeded, const FText& ErrorMessage)
+void UFindSessionWidget::OnSearchFinished(bool bSucceeded, const FText& ErrorMessage)
 {
 	LastSearchResults.Reset();
 
@@ -68,11 +47,37 @@ void UGameSessionControlWidget::OnSearchFinished(bool bSucceeded, const FText& E
 		}
 		ActiveSearchRequest->OnSearchFinished.RemoveAll(this);
 		ActiveSearchRequest = nullptr;
-	}	
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::FromInt(LastSearchResults.Num()));
+		CreateSessionSelectionButtons();
+	}		
 }
 
-void UGameSessionControlWidget::JoinSession(int32 ResultIndex)
+void UFindSessionWidget::CreateSessionSelectionButtons()
+{
+	for (auto SearchResult : LastSearchResults)
+	{
+		auto Button = ConstructSessionButton(SearchResult);
+		Button->OnClicked().AddLambda([this, SearchResult]()
+		{
+			SelectedResult = SearchResult;
+		});
+	}
+}
+
+void UFindSessionWidget::OnJoinGameButtonClicked()
+{
+	if (SelectedResult.Get())
+	{
+		JoinSession(SelectedResult.Get());
+	}	
+}
+
+void UFindSessionWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+	JoinGameButton->OnClicked().AddUObject(this, &UFindSessionWidget::OnJoinGameButtonClicked);
+}
+
+void UFindSessionWidget::JoinSession(UCommonSession_SearchResult* SearchResult)
 {
 	UGameInstance* GI = GetGameInstance();
 	APlayerController* PC = GetOwningPlayer();
@@ -81,7 +86,7 @@ void UGameSessionControlWidget::JoinSession(int32 ResultIndex)
 		return;
 	}
 
-	if (!LastSearchResults.IsValidIndex(ResultIndex) || !LastSearchResults[ResultIndex])
+	if (!SearchResult)
 	{
 		return;
 	}
@@ -91,6 +96,5 @@ void UGameSessionControlWidget::JoinSession(int32 ResultIndex)
 	{
 		return;
 	}
-
-	Sessions->JoinSession(PC, LastSearchResults[ResultIndex]);
+	Sessions->JoinSession(PC, SearchResult);
 }
