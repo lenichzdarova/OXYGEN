@@ -56,9 +56,11 @@ void UFindSessionWidget::CreateSessionSelectionButtons()
 	for (auto SearchResult : LastSearchResults)
 	{
 		auto Button = ConstructSessionButton(SearchResult);
-		Button->OnClicked().AddLambda([this, SearchResult]()
+		TWeakObjectPtr<UCommonButtonBase> ButtonWeak = Button;
+		Button->OnClicked().AddLambda([this, SearchResult, ButtonWeak]()
 		{
 			SelectedResult = SearchResult;
+			ButtonWeak->SetIsSelected(true);			
 		});
 	}
 }
