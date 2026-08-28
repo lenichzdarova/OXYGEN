@@ -7,7 +7,7 @@
 
 #include "LyraInputUserSettings.generated.h"
 
-#define UE_API LYRAGAME_API
+#define UE_API OXYGEN_API
 
 /** 
  * Custom settings class for any input related settings for the Lyra game.

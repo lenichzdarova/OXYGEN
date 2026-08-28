@@ -7,7 +7,7 @@
 
 #include "LyraCameraMode.generated.h"
 
-#define UE_API LYRAGAME_API
+#define UE_API OXYGEN_API
 
 class AActor;
 class UCanvas;

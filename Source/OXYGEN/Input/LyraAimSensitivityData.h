@@ -5,6 +5,9 @@
 #include "Engine/DataAsset.h"
 
 #include "LyraAimSensitivityData.generated.h"
+
+#define UE_API OXYGEN_API
+
 enum class ELyraGamepadSensitivity : uint8;
 
 class UObject;
@@ -16,9 +19,9 @@ class ULyraAimSensitivityData : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 public:
-	ULyraAimSensitivityData(const FObjectInitializer& ObjectInitializer);
+	UE_API ULyraAimSensitivityData(const FObjectInitializer& ObjectInitializer);
 	
-	const float SensitivtyEnumToFloat(const ELyraGamepadSensitivity InSensitivity) const;
+	UE_API const float SensitivtyEnumToFloat(const ELyraGamepadSensitivity InSensitivity) const;
 	
 protected:
 	/** Map of SensitivityMap settings to their corresponding float */
@@ -26,3 +29,4 @@ protected:
 	TMap<ELyraGamepadSensitivity, float> SensitivityMap;
 };
 
+#undef UE_API

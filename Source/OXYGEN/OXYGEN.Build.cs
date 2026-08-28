@@ -13,10 +13,12 @@ public class OXYGEN : ModuleRules
 			"CommonGame",
 			"CommonUser",
 			"CommonUI",
+			"CommonInput",  
 			"Core",
 			"CoreUObject",
 			"DeveloperSettings",
 			"Engine",
+			"EngineSettings",       
 			"EnhancedInput",
 			"GameFeatures",
 			"GameplayAbilities",
@@ -36,30 +38,59 @@ public class OXYGEN : ModuleRules
 			"OnlineSubsystemUtils",
 			"Slate",
 			"SlateCore",
-			"UMG"
+			"UMG",
+			"ReplicationGraph",
+			"ExternalRpcRegistry",
+			"Gauntlet",
+			"GameSubtitles",
+			"CommonLoadingScreen",
+			"AsyncMixin",
+			"AudioModulation",
+			"AudioMixer",           
+			"UIExtension",
+			"Hotfix",
+			"GameplayDebugger",
+			"SignificanceManager",
+			"ControlFlows",
+			"HttpServer",
+			"RHI",
+			"AIModule",             
+			"Json",                 
+			"PropertyPath",         
+			"PhysicsCore",          
+			"ApplicationCore",
+			"OnlineSubsystemUtils",
+			"CoreOnline"
 		});
-
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
 		// Steam OSS is loaded at runtime when DefaultPlatformService=Steam
 		DynamicallyLoadedModuleNames.Add("OnlineSubsystemSteam");
 		
 		PublicIncludePaths.AddRange(new string[]
 		{
+			ModuleDirectory,
 			System.IO.Path.Combine(ModuleDirectory, "AbilitySystem"),
 			System.IO.Path.Combine(ModuleDirectory, "Animation"),
 			System.IO.Path.Combine(ModuleDirectory, "Audio"),
 			System.IO.Path.Combine(ModuleDirectory, "Camera"),
 			System.IO.Path.Combine(ModuleDirectory, "Character"),
-			System.IO.Path.Combine(ModuleDirectory, "Core"),
+			System.IO.Path.Combine(ModuleDirectory, "Cosmetics"),
+			System.IO.Path.Combine(ModuleDirectory, "Development"),
 			System.IO.Path.Combine(ModuleDirectory, "Equipment"),
+			System.IO.Path.Combine(ModuleDirectory, "Feedback"),
 			System.IO.Path.Combine(ModuleDirectory, "GameFeatures"),
+			System.IO.Path.Combine(ModuleDirectory, "GameModes"),
+			System.IO.Path.Combine(ModuleDirectory, "Hotfix"),
 			System.IO.Path.Combine(ModuleDirectory, "Input"),
 			System.IO.Path.Combine(ModuleDirectory, "Interaction"),
 			System.IO.Path.Combine(ModuleDirectory, "Inventory"),
-			System.IO.Path.Combine(ModuleDirectory, "SaveSystem"),
+			System.IO.Path.Combine(ModuleDirectory, "Messages"),
+			System.IO.Path.Combine(ModuleDirectory, "Performance"),
+			System.IO.Path.Combine(ModuleDirectory, "Physics"),
+			System.IO.Path.Combine(ModuleDirectory, "Player"),
 			System.IO.Path.Combine(ModuleDirectory, "Settings"),
 			System.IO.Path.Combine(ModuleDirectory, "System"),
+			System.IO.Path.Combine(ModuleDirectory, "Tests"),
 			System.IO.Path.Combine(ModuleDirectory, "UI"),
 		});
 	}

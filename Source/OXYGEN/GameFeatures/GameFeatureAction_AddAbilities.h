@@ -4,7 +4,7 @@
 
 #include "GameFeatureAction_WorldActionBase.h"
 #include "Abilities/GameplayAbility.h"
-#include "O2_AbilitySet.h"
+#include "AbilitySystem/LyraAbilitySet.h"
 
 #include "GameFeatureAction_AddAbilities.generated.h"
 
@@ -13,7 +13,7 @@ class UInputAction;
 class UAttributeSet;
 class UDataTable;
 struct FComponentRequestHandle;
-class UO2_AbilitySet;
+class ULyraAbilitySet;
 
 USTRUCT(BlueprintType)
 struct FLyraAbilityGrant
@@ -62,7 +62,7 @@ struct FGameFeatureAbilitiesEntry
 
 	// List of ability sets to grant to actors of the specified class
 	UPROPERTY(EditAnywhere, Category="Attributes", meta=(AssetBundles="Client,Server"))
-	TArray<TSoftObjectPtr<const UO2_AbilitySet>> GrantedAbilitySets;
+	TArray<TSoftObjectPtr<const ULyraAbilitySet>> GrantedAbilitySets;
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -97,7 +97,7 @@ private:
 	{
 		TArray<FGameplayAbilitySpecHandle> Abilities;
 		TArray<UAttributeSet*> Attributes;
-		TArray<FAbilitySet_GrantedHandles> AbilitySetHandles;
+		TArray<FLyraAbilitySet_GrantedHandles> AbilitySetHandles;
 	};
 
 	struct FPerContextData

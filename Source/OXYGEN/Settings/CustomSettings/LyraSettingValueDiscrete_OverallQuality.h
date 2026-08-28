@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GameSettingValueDiscrete.h"
+
 #include "LyraSettingValueDiscrete_OverallQuality.generated.h"
 
 class UObject;

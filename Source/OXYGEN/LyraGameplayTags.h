@@ -1,0 +1,60 @@
+// Copyright Epic Games, Inc. All Rights Reserved.
+
+#pragma once
+
+#include "NativeGameplayTags.h"
+
+namespace LyraGameplayTags
+{
+	OXYGEN_API	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString = false);
+
+	// Declare all of the custom native tags that Lyra will use
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_IsDead);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Cooldown);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Cost);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_TagsBlocked);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_TagsMissing);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Networking);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_ActivationGroup);
+
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Behavior_SurvivesDeath);
+
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Move);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Look_Mouse);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Look_Stick);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Crouch);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_AutoRun);
+
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_Spawned);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_DataAvailable);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_DataInitialized);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_GameplayReady);
+
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayEvent_Death);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayEvent_Reset);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayEvent_RequestReset);
+
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Damage);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Heal);
+
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cheat_GodMode);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cheat_UnlimitedHealth);
+
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Crouching);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_AutoRunning);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Death);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Death_Dying);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Death_Dead);
+
+	// These are mappings from MovementMode enums to GameplayTags associated with those enums (below)
+	OXYGEN_API	extern const TMap<uint8, FGameplayTag> MovementModeTagMap;
+	OXYGEN_API	extern const TMap<uint8, FGameplayTag> CustomMovementModeTagMap;
+
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Walking);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_NavWalking);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Falling);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Swimming);
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Flying);
+
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Custom);
+};

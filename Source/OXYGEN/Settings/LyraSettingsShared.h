@@ -4,7 +4,6 @@
 
 #include "GameFramework/SaveGame.h"
 #include "SubtitleDisplayOptions.h"
-
 #include "UObject/ObjectPtr.h"
 #include "LyraSettingsShared.generated.h"
 

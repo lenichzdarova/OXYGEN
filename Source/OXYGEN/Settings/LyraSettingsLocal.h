@@ -144,7 +144,7 @@ private:
 	void ApplyDisplayGamma();
 	
 	UPROPERTY(Config)
-	float DisplayGamma = 2.2;
+	float DisplayGamma = 2.2f;
 
 	//////////////////////////////////////////////////////////////////
 	// Display

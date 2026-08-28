@@ -6,7 +6,7 @@
 
 #include "LyraSettingValueDiscrete_Language.generated.h"
 
-#define UE_API LYRAGAME_API
+#define UE_API OXYGEN_API
 
 class FText;
 class UObject;

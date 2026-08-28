@@ -6,7 +6,7 @@
 
 #include "LyraPlayerMappableKeyProfile.generated.h"
 
-#define UE_API LYRAGAME_API
+#define UE_API OXYGEN_API
 
 UCLASS(MinimalAPI)
 class ULyraPlayerMappableKeyProfile : public UEnhancedPlayerMappableKeyProfile

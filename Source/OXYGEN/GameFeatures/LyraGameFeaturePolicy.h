@@ -21,7 +21,7 @@ class ULyraGameFeaturePolicy : public UDefaultGameFeaturesProjectPolicies
 	GENERATED_BODY()
 
 public:
-	LYRAGAME_API static ULyraGameFeaturePolicy& Get();
+	OXYGEN_API static ULyraGameFeaturePolicy& Get();
 
 	ULyraGameFeaturePolicy(const FObjectInitializer& ObjectInitializer);
 

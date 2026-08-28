@@ -11,6 +11,7 @@
 
 DEFINE_LOG_CATEGORY(LogLyraGameSettingRegistry);
 
+#define LOCTEXT_NAMESPACE "Lyra"
 
 //--------------------------------------
 // ULyraGameSettingRegistry
@@ -85,4 +86,5 @@ void ULyraGameSettingRegistry::SaveChanges()
 	}
 }
 
+#undef LOCTEXT_NAMESPACE
 

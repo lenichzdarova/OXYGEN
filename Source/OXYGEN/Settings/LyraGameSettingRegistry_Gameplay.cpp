@@ -9,7 +9,6 @@
 #include "LyraSettingsLocal.h"
 #include "GameSettingValueDiscreteDynamic.h"
 #include "Player/LyraLocalPlayer.h"
-#include "Replays/LyraReplaySubsystem.h"
 
 #define LOCTEXT_NAMESPACE "Lyra"
 
@@ -65,7 +64,7 @@ UGameSettingCollection* ULyraGameSettingRegistry::InitializeGameplaySettings(ULy
 			Setting->SetDefaultValue(GetDefault<ULyraSettingsLocal>()->ShouldAutoRecordReplays());
 
 			Setting->AddEditCondition(FWhenPlayingAsPrimaryPlayer::Get());
-			Setting->AddEditCondition(FWhenPlatformHasTrait::KillIfMissing(ULyraReplaySubsystem::GetPlatformSupportTraitTag(), TEXT("Platform does not support saving replays")));
+			//Setting->AddEditCondition(FWhenPlatformHasTrait::KillIfMissing(ULyraReplaySubsystem::GetPlatformSupportTraitTag(), TEXT("Platform does not support saving replays")));
 
 			ReplaySubsection->AddSetting(Setting);
 
@@ -88,7 +87,7 @@ UGameSettingCollection* ULyraGameSettingRegistry::InitializeGameplaySettings(ULy
 			}
 
 			Setting->AddEditCondition(FWhenPlayingAsPrimaryPlayer::Get());
-			Setting->AddEditCondition(FWhenPlatformHasTrait::KillIfMissing(ULyraReplaySubsystem::GetPlatformSupportTraitTag(), TEXT("Platform does not support saving replays")));
+			//Setting->AddEditCondition(FWhenPlatformHasTrait::KillIfMissing(ULyraReplaySubsystem::GetPlatformSupportTraitTag(), TEXT("Platform does not support saving replays")));
 
 			ReplaySubsection->AddSetting(Setting);
 
