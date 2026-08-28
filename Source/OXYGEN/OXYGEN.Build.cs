@@ -23,6 +23,7 @@ public class OXYGEN : ModuleRules
 			"GameplayMessageRuntime",
 			"GameplayTags",
 			"GameplayTasks",
+			"GameSettings",
 			"InputCore",
 			"IrisCore",
 			"ModularGameplay",
@@ -46,12 +47,18 @@ public class OXYGEN : ModuleRules
 		PublicIncludePaths.AddRange(new string[]
 		{
 			System.IO.Path.Combine(ModuleDirectory, "AbilitySystem"),
+			System.IO.Path.Combine(ModuleDirectory, "Animation"),
+			System.IO.Path.Combine(ModuleDirectory, "Audio"),
+			System.IO.Path.Combine(ModuleDirectory, "Camera"),
 			System.IO.Path.Combine(ModuleDirectory, "Character"),
 			System.IO.Path.Combine(ModuleDirectory, "Core"),
 			System.IO.Path.Combine(ModuleDirectory, "Equipment"),
+			System.IO.Path.Combine(ModuleDirectory, "GameFeatures"),
+			System.IO.Path.Combine(ModuleDirectory, "Input"),
 			System.IO.Path.Combine(ModuleDirectory, "Interaction"),
 			System.IO.Path.Combine(ModuleDirectory, "Inventory"),
 			System.IO.Path.Combine(ModuleDirectory, "SaveSystem"),
+			System.IO.Path.Combine(ModuleDirectory, "Settings"),
 			System.IO.Path.Combine(ModuleDirectory, "System"),
 			System.IO.Path.Combine(ModuleDirectory, "UI"),
 		});

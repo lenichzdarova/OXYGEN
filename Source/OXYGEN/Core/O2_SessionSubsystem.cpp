@@ -3,6 +3,8 @@
 #include "O2_SessionSubsystem.h"
 
 #include "O2_GameInstance.h"
+#include "Online.h"
+#include "OnlineSubsystemUtils.h"
 
 UO2_SessionSubsystem::UO2_SessionSubsystem()
 {
@@ -24,7 +26,7 @@ void UO2_SessionSubsystem::HostNewGameSession(APlayerController* HostingPlayer)
 	{
 		O2GI->EnsureOnlineUserReady(0);
 	}	
-	auto Request = CreateOnlineHostSessionRequest();	
+	auto Request = CreateOnlineHostSessionRequest();
 	HostSession(HostingPlayer, Request);
 }
 

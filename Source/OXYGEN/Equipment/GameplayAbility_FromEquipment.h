@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "OXYGEN/AbilitySystem/GameplayAbilityBase.h"
+#include "OXYGEN/AbilitySystem/GameGameplayAbilityBase.h"
 
 #include "GameplayAbility_FromEquipment.generated.h"
 
@@ -15,7 +15,7 @@ class UInventoryItemInstance;
  * An ability granted by and associated with an equipment instance
  */
 UCLASS()
-class UGameplayAbility_FromEquipment : public UGameplayAbilityBase
+class UGameplayAbility_FromEquipment : public UGameGameplayAbilityBase
 {
 	GENERATED_BODY()
 

@@ -10,11 +10,11 @@ class AActor;
 class UEquipmentInstance;
 
 USTRUCT()
-struct FLyraEquipmentActorToSpawn
+struct FEquipmentActorToSpawn
 {
 	GENERATED_BODY()
 
-	FLyraEquipmentActorToSpawn()
+	FEquipmentActorToSpawn()
 	{}
 
 	UPROPERTY(EditAnywhere, Category=Equipment)
@@ -51,5 +51,5 @@ public:
 
 	// Actors to spawn on the pawn when this is equipped
 	UPROPERTY(EditDefaultsOnly, Category=Equipment)
-	TArray<FLyraEquipmentActorToSpawn> ActorsToSpawn;
+	TArray<FEquipmentActorToSpawn> ActorsToSpawn;
 };

@@ -1,14 +1,14 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "OXYGEN/AbilitySystem/GameplayAbilityBase.h"
+#include "OXYGEN/AbilitySystem/GameGameplayAbilityBase.h"
 #include "InteractExecutionAbility.h"
 #include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
 #include "AbilityTask_WaitForInteractableTarget.h"
 #include "PlayerInteractSeekingAbility.generated.h"
 
 UCLASS()
-class OXYGEN_API UPlayerInteractSeekingAbility : public UGameplayAbilityBase
+class OXYGEN_API UPlayerInteractSeekingAbility : public UGameGameplayAbilityBase
 {
 	GENERATED_BODY()
 

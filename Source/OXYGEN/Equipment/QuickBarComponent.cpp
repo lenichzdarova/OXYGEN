@@ -3,7 +3,7 @@
 #include "QuickBarComponent.h"
 #include "OXYGEN/Equipment/EquipmentDefinition.h"
 #include "OXYGEN/Equipment/EquipmentInstance.h"
-#include "OXYGEN/Equipment/EquipmentManagerComponent.h"
+#include "EquipmentManagerComponent.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "GameFramework/Pawn.h"
 #include "OXYGEN/Inventory/InventoryFragment_EquippableItem.h"

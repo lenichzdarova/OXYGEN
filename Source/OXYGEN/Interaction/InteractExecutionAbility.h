@@ -1,11 +1,11 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "OXYGEN/AbilitySystem/GameplayAbilityBase.h"
+#include "OXYGEN/AbilitySystem/GameGameplayAbilityBase.h"
 #include "InteractExecutionAbility.generated.h"
 
 UCLASS()
-class OXYGEN_API UInteractExecutionAbility : public UGameplayAbilityBase
+class OXYGEN_API UInteractExecutionAbility : public UGameGameplayAbilityBase
 {
     GENERATED_BODY()
 

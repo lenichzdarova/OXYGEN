@@ -50,7 +50,4 @@ protected:
 	void OnCreateNewGameButtonClicked();
 	void OnSessionCreateComplete(const FOnlineResultInformation& Result);	
 	
-	
-	
-	
 };

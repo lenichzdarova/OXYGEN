@@ -66,7 +66,7 @@ APawn* UEquipmentInstance::GetTypedPawn(TSubclassOf<APawn> PawnType) const
 	return Result;
 }
 
-void UEquipmentInstance::SpawnEquipmentActors(const TArray<FLyraEquipmentActorToSpawn>& ActorsToSpawn)
+void UEquipmentInstance::SpawnEquipmentActors(const TArray<FEquipmentActorToSpawn>& ActorsToSpawn)
 {
 	if (APawn* OwningPawn = GetPawn())
 	{
@@ -76,7 +76,7 @@ void UEquipmentInstance::SpawnEquipmentActors(const TArray<FLyraEquipmentActorTo
 			AttachTarget = Char->GetMesh();
 		}
 
-		for (const FLyraEquipmentActorToSpawn& SpawnInfo : ActorsToSpawn)
+		for (const FEquipmentActorToSpawn& SpawnInfo : ActorsToSpawn)
 		{
 			AActor* NewActor = GetWorld()->SpawnActorDeferred<AActor>(SpawnInfo.ActorToSpawn, FTransform::Identity, OwningPawn);
 			NewActor->FinishSpawning(FTransform::Identity, /*bIsDefaultTransform=*/ true);

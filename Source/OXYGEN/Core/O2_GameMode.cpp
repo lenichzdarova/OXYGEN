@@ -5,15 +5,15 @@
 
 #include "O2_GameSession.h"
 #include "O2_GameState.h"
-#include "O2_PlayerController.h"
-#include "O2_PlayerStateBase.h"
+#include "GamePlayerController.h"
+#include "PlayerStateBase.h"
 
 AO2_GameMode::AO2_GameMode()
 {
 	GameSessionClass = AO2_GameSession::StaticClass();
 	GameStateClass = AO2_GameState::StaticClass();
 	PlayerControllerClass = AO2_PlayerController::StaticClass();
-	PlayerStateClass = AO2_PlayerStateBase::StaticClass();
+	PlayerStateClass = APlayerStateBase::StaticClass();
 	
 	// DefaultPawnClass left to BP_GameMode / project settings so content can override.
 }
