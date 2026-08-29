@@ -23,7 +23,7 @@ public:
 	UPROPERTY(config, EditAnywhere, Category = ReplicationGraph)
 	bool bDisableReplicationGraph = true;
 
-	UPROPERTY(config, EditAnywhere, Category = ReplicationGraph, meta = (MetaClass = "/Script/LyraGame.LyraReplicationGraph"))
+	UPROPERTY(config, EditAnywhere, Category = ReplicationGraph, meta = (MetaClass = "/Script/OXYGEN.LyraReplicationGraph"))
 	FSoftClassPath DefaultReplicationGraphClass;
 
 	UPROPERTY(EditAnywhere, Category = FastSharedPath, meta = (ConsoleVariable = "Lyra.RepGraph.EnableFastSharedPath"))
