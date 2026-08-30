@@ -71,6 +71,14 @@ namespace LyraGameplayTags
 	{
 		// Fill these in with your custom modes
 	};
+	
+	//UI tags
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(UI_Layer_Game, "UI.Layer.Game", "Game layer for UI elements");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(UI_Layer_GameMenu, "UI.Layer.GameMenu", "Game menu layer for UI elements");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(UI_Layer_MainMenu, "UI.Layer.MainMenu", "Main menu layer for UI elements");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(UI_Layer_Modal, "UI.Layer.Modal", "Modal layer for UI elements");
+	
+	
 
 	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString)
 	{
