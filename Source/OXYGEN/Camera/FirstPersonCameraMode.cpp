@@ -6,91 +6,92 @@
 #include "Curves/CurveVector.h"
 #include "GameFramework/Character.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(FirstPersonCameraMode)
+
 UFirstPersonCameraMode::UFirstPersonCameraMode()
 {
-	TargetOffsetCurve = nullptr;
+	// Можно сразу задать удобный FOV
+	FieldOfView = 100.0f;
+
+	// Ограничения pitch (можно оставить дефолтные из родителя)
+	ViewPitchMin = -89.0f;
+	ViewPitchMax = 89.0f;
 }
 
 void UFirstPersonCameraMode::UpdateView(float DeltaTime)
 {
-	UpdateForTarget(DeltaTime);
 	UpdateCrouchOffset(DeltaTime);
 
 	FVector PivotLocation = GetPivotLocation() + CurrentCrouchOffset;
 	FRotator PivotRotation = GetPivotRotation();
 
+	// Клампим pitch
 	PivotRotation.Pitch = FMath::ClampAngle(PivotRotation.Pitch, ViewPitchMin, ViewPitchMax);
 
 	View.Location = PivotLocation;
 	View.Rotation = PivotRotation;
-	View.ControlRotation = View.Rotation;
+	View.ControlRotation = PivotRotation;
 	View.FieldOfView = FieldOfView;
-
-	// Apply third person offset using pitch.
-	if (!bUseRuntimeFloatCurves)
-	{
-		if (TargetOffsetCurve)
-		{
-			const FVector TargetOffset = TargetOffsetCurve->GetVectorValue(PivotRotation.Pitch);
-			View.Location = PivotLocation + PivotRotation.RotateVector(TargetOffset);
-		}
-	}
-	else
-	{
-		FVector TargetOffset(0.0f);
-
-		TargetOffset.X = TargetOffsetX.GetRichCurveConst()->Eval(PivotRotation.Pitch);
-		TargetOffset.Y = TargetOffsetY.GetRichCurveConst()->Eval(PivotRotation.Pitch);
-		TargetOffset.Z = TargetOffsetZ.GetRichCurveConst()->Eval(PivotRotation.Pitch);
-
-		View.Location = PivotLocation + PivotRotation.RotateVector(TargetOffset);
-	}
 }
 
-void UFirstPersonCameraMode::UpdateForTarget(float DeltaTime)
-{
-
-	if (const ACharacter* TargetCharacter = Cast<ACharacter>(GetTargetActor()))
+FVector UFirstPersonCameraMode::GetPivotLocation() const
+{	
+	const AActor* TargetActor = GetTargetActor();
+	if (!TargetActor)
 	{
-		if (TargetCharacter->IsCrouched())
+		return FVector::ZeroVector;
+	}	
+	if (const ACharacter* Character = Cast<ACharacter>(TargetActor))
+	{		
+		if (USkeletalMeshComponent* Mesh = Character->GetMesh())
 		{
-			const ACharacter* TargetCharacterCDO = TargetCharacter->GetClass()->GetDefaultObject<ACharacter>();
-			const float CrouchedHeightAdjustment = TargetCharacterCDO->CrouchedEyeHeight - TargetCharacterCDO->BaseEyeHeight;
+			if (Mesh->DoesSocketExist(CameraAttachSocket))
+			{				
+				const FTransform SocketTransform = Mesh->GetSocketTransform(CameraAttachSocket, RTS_World);
+				
+				// Применяем локальный оффсет в пространстве сокета
+				return SocketTransform.TransformPosition(CameraOffset);
+			}
 
-			SetTargetCrouchOffset(FVector(0.f, 0.f, CrouchedHeightAdjustment));
-
-			return;
+			// Fallback — если сокета нет
+			return Mesh->GetComponentLocation();
 		}
 	}
 
-	SetTargetCrouchOffset(FVector::ZeroVector);
+	// Последний fallback
+	if (const APawn* Pawn = Cast<APawn>(TargetActor))
+	{
+		return Pawn->GetPawnViewLocation();
+	}
+
+	return TargetActor->GetActorLocation();
 }
-
-void UFirstPersonCameraMode::DrawDebug(UCanvas* Canvas) const
-{
-	Super::DrawDebug(Canvas);
-}
-
-
-
-void UFirstPersonCameraMode::SetTargetCrouchOffset(FVector NewTargetOffset)
-{
-	CrouchOffsetBlendPct = 0.0f;
-	InitialCrouchOffset = CurrentCrouchOffset;
-	TargetCrouchOffset = NewTargetOffset;
-}
-
 
 void UFirstPersonCameraMode::UpdateCrouchOffset(float DeltaTime)
 {
-	if (CrouchOffsetBlendPct < 1.0f)
+	if (const ACharacter* Character = Cast<ACharacter>(GetTargetActor()))
 	{
-		CrouchOffsetBlendPct = FMath::Min(CrouchOffsetBlendPct + DeltaTime * CrouchOffsetBlendMultiplier, 1.0f);
-		CurrentCrouchOffset = FMath::InterpEaseInOut(InitialCrouchOffset, TargetCrouchOffset, CrouchOffsetBlendPct, 1.0f);
+		if (Character->bIsCrouched)
+		{
+			const ACharacter* CDO = Character->GetClass()->GetDefaultObject<ACharacter>();
+			const float HeightDiff = CDO->CrouchedEyeHeight - CDO->BaseEyeHeight;
+			SetTargetCrouchOffset(FVector(0.f, 0.f, HeightDiff));
+		}
+		else
+		{
+			SetTargetCrouchOffset(FVector::ZeroVector);
+		}
 	}
 	else
 	{
-		CurrentCrouchOffset = TargetCrouchOffset;
-		CrouchOffsetBlendPct = 1.0f;
+		SetTargetCrouchOffset(FVector::ZeroVector);
 	}
+
+	// Плавная интерполяция
+	CurrentCrouchOffset = FMath::VInterpTo(CurrentCrouchOffset, TargetCrouchOffset, DeltaTime, CrouchOffsetBlendSpeed);
+}
+
+void UFirstPersonCameraMode::SetTargetCrouchOffset(const FVector& NewTargetOffset)
+{
+	TargetCrouchOffset = NewTargetOffset;
 }

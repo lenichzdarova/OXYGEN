@@ -373,6 +373,7 @@ void ULyraHeroComponent::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 
 void ULyraHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Input_Move called"));
 	APawn* Pawn = GetPawn<APawn>();
 	AController* Controller = Pawn ? Pawn->GetController() : nullptr;
 
@@ -403,6 +404,7 @@ void ULyraHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 
 void ULyraHeroComponent::Input_LookMouse(const FInputActionValue& InputActionValue)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Input_LookMouse called"));
 	APawn* Pawn = GetPawn<APawn>();
 
 	if (!Pawn)
