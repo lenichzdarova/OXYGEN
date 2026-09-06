@@ -65,7 +65,7 @@ protected:
     virtual bool ShouldPlatformDisplayControllerDisconnectScreen() const;
 	
 	/**
-	* Pushes the ControllerDisconnectedMenuClass to the Menu layer (UI.Layer.Menu)
+	* Pushes the ControllerDisconnectedMenuClass to the Menu layer (UI.Layer.GameMenu)
 	*/
 	UFUNCTION(BlueprintNativeEvent, Category="Controller Disconnect Menu")
 	void DisplayControllerDisconnectedMenu();

@@ -18,10 +18,12 @@
 #include "CommonUIVisibilitySubsystem.h"
 #endif	// WITH_EDITOR
 
+#include "LyraGameplayTags.h"
+
 #include UE_INLINE_GENERATED_CPP_BY_NAME(LyraHUDLayout)
 
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_UI_LAYER_MENU, "UI.Layer.Menu");
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_UI_ACTION_ESCAPE, "UI.Action.Escape");
+//UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_UI_ACTION_ESCAPE, "UI.Action.Escape");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_UI_ACTION_ESCAPE, "UI.Action.Cancel");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Platform_Trait_Input_PrimarlyController, "Platform.Trait.Input.PrimarlyController");
 
 ULyraHUDLayout::ULyraHUDLayout(const FObjectInitializer& ObjectInitializer)
@@ -35,9 +37,9 @@ ULyraHUDLayout::ULyraHUDLayout(const FObjectInitializer& ObjectInitializer)
 void ULyraHUDLayout::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
-
+	
 	RegisterUIActionBinding(FBindUIActionArgs(FUIActionTag::ConvertChecked(TAG_UI_ACTION_ESCAPE), false, FSimpleDelegate::CreateUObject(this, &ThisClass::HandleEscapeAction)));
-
+		
 	// If we can display a controller disconnect screen, then listen for the controller state change delegates
 	if (ShouldPlatformDisplayControllerDisconnectScreen())
 	{
@@ -68,7 +70,7 @@ void ULyraHUDLayout::HandleEscapeAction()
 {
 	if (ensure(!EscapeMenuClass.IsNull()))
 	{
-		UCommonUIExtensions::PushStreamedContentToLayer_ForPlayer(GetOwningLocalPlayer(), TAG_UI_LAYER_MENU, EscapeMenuClass);
+		UCommonUIExtensions::PushStreamedContentToLayer_ForPlayer(GetOwningLocalPlayer(), LyraGameplayTags::UI_Layer_GameMenu, EscapeMenuClass);
 	}
 }
 
@@ -179,7 +181,7 @@ void ULyraHUDLayout::DisplayControllerDisconnectedMenu_Implementation()
 	if (ControllerDisconnectedScreen)
 	{
 		// Push the "controller disconnected" widget to the menu layer
-		SpawnedControllerDisconnectScreen = UCommonUIExtensions::PushContentToLayer_ForPlayer(GetOwningLocalPlayer(), TAG_UI_LAYER_MENU, ControllerDisconnectedScreen);
+		SpawnedControllerDisconnectScreen = UCommonUIExtensions::PushContentToLayer_ForPlayer(GetOwningLocalPlayer(), LyraGameplayTags::UI_Layer_GameMenu, ControllerDisconnectedScreen);
 	}
 }
 
