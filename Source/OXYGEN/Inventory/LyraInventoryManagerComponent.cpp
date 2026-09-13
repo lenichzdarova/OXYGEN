@@ -162,6 +162,18 @@ bool ULyraInventoryManagerComponent::CanAddItemDefinition(TSubclassOf<ULyraInven
 	return true;
 }
 
+void ULyraInventoryManagerComponent::Server_AddItemDefinition_Implementation(
+	TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount)
+{
+	AddItemDefinition(ItemDef, StackCount);
+}
+
+bool ULyraInventoryManagerComponent::Server_AddItemDefinition_Validate(
+	TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount)
+{
+	return ItemDef != nullptr && StackCount > 0;
+}
+
 ULyraInventoryItemInstance* ULyraInventoryManagerComponent::AddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount)
 {
 	ULyraInventoryItemInstance* Result = nullptr;

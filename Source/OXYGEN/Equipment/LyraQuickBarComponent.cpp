@@ -38,7 +38,7 @@ void ULyraQuickBarComponent::BeginPlay()
 	if (Slots.Num() < NumSlots)
 	{
 		Slots.AddDefaulted(NumSlots - Slots.Num());
-	}
+	}	
 
 	Super::BeginPlay();
 }
@@ -166,10 +166,15 @@ int32 ULyraQuickBarComponent::GetNextFreeItemSlot() const
 	return INDEX_NONE;
 }
 
-void ULyraQuickBarComponent::AddItemToSlot(int32 SlotIndex, ULyraInventoryItemInstance* Item)
+void ULyraQuickBarComponent::AddItemToSlot_Implementation(int32 SlotIndex, ULyraInventoryItemInstance* Item)
 {
 	if (Slots.IsValidIndex(SlotIndex) && (Item != nullptr))
 	{
+		auto SearchResult = Slots.Find(Item);
+		if (SearchResult != INDEX_NONE && SearchResult != SlotIndex)
+		{
+			Slots[SearchResult] = nullptr;
+		}
 		if (Slots[SlotIndex] == nullptr)
 		{
 			Slots[SlotIndex] = Item;
@@ -206,6 +211,7 @@ void ULyraQuickBarComponent::OnRep_Slots()
 {
 	FLyraQuickBarSlotsChangedMessage Message;
 	Message.Owner = GetOwner();
+	Message.Component = this;
 	Message.Slots = Slots;
 
 	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
@@ -216,6 +222,7 @@ void ULyraQuickBarComponent::OnRep_ActiveSlotIndex()
 {
 	FLyraQuickBarActiveIndexChangedMessage Message;
 	Message.Owner = GetOwner();
+	Message.Component = this;
 	Message.ActiveIndex = ActiveSlotIndex;
 
 	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Components/ControllerComponent.h"
+#include "Components/PawnComponent.h"
 #include "Inventory/LyraInventoryItemInstance.h"
 
 #include "LyraQuickBarComponent.generated.h"
@@ -14,7 +15,7 @@ class UObject;
 struct FFrame;
 
 UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent))
-class ULyraQuickBarComponent : public UControllerComponent
+class ULyraQuickBarComponent : public UPawnComponent
 {
 	GENERATED_BODY()
 
@@ -45,7 +46,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure=false)
 	int32 GetNextFreeItemSlot() const;
 
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
+	UFUNCTION(Server, Reliable, BlueprintCallable, BlueprintAuthorityOnly)
 	void AddItemToSlot(int32 SlotIndex, ULyraInventoryItemInstance* Item);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
@@ -61,7 +62,7 @@ private:
 
 protected:
 	UPROPERTY()
-	int32 NumSlots = 3;
+	int32 NumSlots = 5;
 
 	UFUNCTION()
 	void OnRep_Slots();
@@ -88,6 +89,9 @@ struct FLyraQuickBarSlotsChangedMessage
 
 	UPROPERTY(BlueprintReadOnly, Category=Inventory)
 	TObjectPtr<AActor> Owner = nullptr;
+	
+	UPROPERTY(BlueprintReadOnly, Category=Inventory)
+	TObjectPtr<ULyraQuickBarComponent> Component = nullptr;
 
 	UPROPERTY(BlueprintReadOnly, Category = Inventory)
 	TArray<TObjectPtr<ULyraInventoryItemInstance>> Slots;
@@ -101,6 +105,9 @@ struct FLyraQuickBarActiveIndexChangedMessage
 
 	UPROPERTY(BlueprintReadOnly, Category=Inventory)
 	TObjectPtr<AActor> Owner = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, Category=Inventory)
+	TObjectPtr<ULyraQuickBarComponent> Component = nullptr;
 
 	UPROPERTY(BlueprintReadOnly, Category=Inventory)
 	int32 ActiveIndex = 0;

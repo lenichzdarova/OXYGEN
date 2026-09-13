@@ -120,14 +120,6 @@ struct TStructOpsTypeTraits<FLyraInventoryList> : public TStructOpsTypeTraitsBas
 };
 
 
-
-
-
-
-
-
-
-
 /**
  * Manages an inventory
  */
@@ -141,6 +133,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category=Inventory)
 	UE_API bool CanAddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount = 1);
+	
+	UFUNCTION(Server, Reliable, WithValidation, BlueprintCallable, Category=Inventory)
+	void Server_AddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount = 1);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category=Inventory)
 	UE_API ULyraInventoryItemInstance* AddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount = 1);
