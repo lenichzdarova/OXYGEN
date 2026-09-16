@@ -87,7 +87,6 @@ ULyraInventoryItemInstance* FLyraInventoryList::AddEntry(TSubclassOf<ULyraInvent
 	AActor* OwningActor = OwnerComponent->GetOwner();
 	check(OwningActor->HasAuthority());
 
-
 	FLyraInventoryEntry& NewEntry = Entries.AddDefaulted_GetRef();
 	NewEntry.Instance = NewObject<ULyraInventoryItemInstance>(OwnerComponent->GetOwner());  //@TODO: Using the actor instead of component as the outer due to UE-127172
 	NewEntry.Instance->SetItemDef(ItemDef);
@@ -109,7 +108,15 @@ ULyraInventoryItemInstance* FLyraInventoryList::AddEntry(TSubclassOf<ULyraInvent
 
 void FLyraInventoryList::AddEntry(ULyraInventoryItemInstance* Instance)
 {
-	unimplemented();
+	AActor* OwningActor = OwnerComponent->GetOwner();
+	check(OwningActor->HasAuthority());
+
+	FLyraInventoryEntry& NewEntry = Entries.AddDefaulted_GetRef();
+	NewEntry.Instance = NewObject<ULyraInventoryItemInstance>(OwnerComponent->GetOwner());
+	NewEntry.Instance->SetItemDef(Instance->GetItemDef());
+	NewEntry.Instance->StatTags = Instance->StatTags;
+	NewEntry.StackCount = 1;	
+	MarkItemDirty(NewEntry);
 }
 
 void FLyraInventoryList::RemoveEntry(ULyraInventoryItemInstance* Instance)
@@ -149,6 +156,13 @@ ULyraInventoryManagerComponent::ULyraInventoryManagerComponent(const FObjectInit
 	SetIsReplicatedByDefault(true);
 }
 
+void ULyraInventoryManagerComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	PlacementManager = GetOwner()->FindComponentByClass<UInventoryPlacementManagerComponent>();
+}
+
 void ULyraInventoryManagerComponent::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -159,17 +173,20 @@ void ULyraInventoryManagerComponent::GetLifetimeReplicatedProps(TArray< FLifetim
 bool ULyraInventoryManagerComponent::CanAddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount)
 {
 	//@TODO: Add support for stack limit / uniqueness checks / etc...
+	if (PlacementManager)
+	{
+		FItemPlacementRequest Request;
+		return PlacementManager->CanPlaceItem(ItemDef, Request);
+	}
 	return true;
 }
 
-void ULyraInventoryManagerComponent::Server_AddItemDefinition_Implementation(
-	TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount)
+void ULyraInventoryManagerComponent::Server_AddItemDefinition_Implementation( TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount)
 {
 	AddItemDefinition(ItemDef, StackCount);
 }
 
-bool ULyraInventoryManagerComponent::Server_AddItemDefinition_Validate(
-	TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount)
+bool ULyraInventoryManagerComponent::Server_AddItemDefinition_Validate(	TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount)
 {
 	return ItemDef != nullptr && StackCount > 0;
 }
@@ -177,6 +194,11 @@ bool ULyraInventoryManagerComponent::Server_AddItemDefinition_Validate(
 ULyraInventoryItemInstance* ULyraInventoryManagerComponent::AddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount)
 {
 	ULyraInventoryItemInstance* Result = nullptr;
+	if (!CanAddItemDefinition(ItemDef, StackCount))
+	{
+		return Result;
+	}
+	
 	if (ItemDef != nullptr)
 	{
 		Result = InventoryList.AddEntry(ItemDef, StackCount);
@@ -185,17 +207,24 @@ ULyraInventoryItemInstance* ULyraInventoryManagerComponent::AddItemDefinition(TS
 		{
 			AddReplicatedSubObject(Result);
 		}
-	}
+		PlacementManager->Server_AddItem(Result, FItemPlacementRequest());
+	}	
 	return Result;
 }
 
-void ULyraInventoryManagerComponent::AddItemInstance(ULyraInventoryItemInstance* ItemInstance)
+void ULyraInventoryManagerComponent::AddItemInstance(ULyraInventoryItemInstance* ItemInstance, FItemPlacementRequest PlacementRequest)
 {
+	if (PlacementManager && !PlacementManager->CanPlaceItem(ItemInstance->GetItemDef(), PlacementRequest) )
+	{
+		return;
+	}	
+		
 	InventoryList.AddEntry(ItemInstance);
 	if (IsUsingRegisteredSubObjectList() && IsReadyForReplication() && ItemInstance)
 	{
 		AddReplicatedSubObject(ItemInstance);
-	}
+	}	
+	PlacementManager->Server_AddItem(ItemInstance, PlacementRequest);
 }
 
 void ULyraInventoryManagerComponent::RemoveItemInstance(ULyraInventoryItemInstance* ItemInstance)

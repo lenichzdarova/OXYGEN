@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "InventoryPlacementManagerComponent.h"
 #include "Components/ActorComponent.h"
 #include "Net/Serialization/FastArraySerializer.h"
 
@@ -130,6 +131,8 @@ class ULyraInventoryManagerComponent : public UActorComponent
 
 public:
 	UE_API ULyraInventoryManagerComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	
+	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category=Inventory)
 	UE_API bool CanAddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount = 1);
@@ -141,7 +144,7 @@ public:
 	UE_API ULyraInventoryItemInstance* AddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount = 1);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category=Inventory)
-	UE_API void AddItemInstance(ULyraInventoryItemInstance* ItemInstance);
+	UE_API void AddItemInstance(ULyraInventoryItemInstance* ItemInstance, FItemPlacementRequest PlacementRequest);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category=Inventory)
 	UE_API void RemoveItemInstance(ULyraInventoryItemInstance* ItemInstance);
@@ -161,8 +164,12 @@ public:
 	//~End of UObject interface
 
 private:
+		
 	UPROPERTY(Replicated)
-	FLyraInventoryList InventoryList;
+	FLyraInventoryList InventoryList;	
+	
+	UPROPERTY()
+	TObjectPtr<UInventoryPlacementManagerComponent> PlacementManager = nullptr;
 };
 
 #undef UE_API

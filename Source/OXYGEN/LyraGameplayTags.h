@@ -64,4 +64,7 @@ namespace LyraGameplayTags
 	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_MainMenu);	
 	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Modal);
 	
+	//Inventory
+	OXYGEN_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_Placement_Message_GridChanged);
+	
 };
