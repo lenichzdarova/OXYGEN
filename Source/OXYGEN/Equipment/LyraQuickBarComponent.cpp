@@ -29,8 +29,8 @@ void ULyraQuickBarComponent::GetLifetimeReplicatedProps(TArray< FLifetimePropert
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ThisClass, Slots);
-	DOREPLIFETIME(ThisClass, ActiveSlotIndex);
+	DOREPLIFETIME_CONDITION(ThisClass, Slots, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, ActiveSlotIndex, COND_OwnerOnly);
 }
 
 void ULyraQuickBarComponent::BeginPlay()

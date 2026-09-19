@@ -167,7 +167,7 @@ void ULyraInventoryManagerComponent::GetLifetimeReplicatedProps(TArray< FLifetim
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ThisClass, InventoryList);
+	DOREPLIFETIME_CONDITION(ThisClass, InventoryList, COND_OwnerOnly);
 }
 
 bool ULyraInventoryManagerComponent::CanAddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount)

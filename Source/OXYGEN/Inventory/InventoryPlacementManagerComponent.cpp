@@ -9,8 +9,7 @@ bool UInventoryPlacementManagerComponent::CanPlaceItem(TSubclassOf<ULyraInventor
 }
 
 void UInventoryPlacementManagerComponent::Server_MoveItemToSlot_Implementation(ULyraInventoryItemInstance* ItemInstance, FItemPlacementRequest Request)
-{
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Item moved to slot base class"));
+{	
 }
 
 void UInventoryPlacementManagerComponent::Server_RemoveItem_Implementation(ULyraInventoryItemInstance* ItemInstance)

@@ -4,15 +4,18 @@
 #include "UniformGridInventoryPlacementComponent.h"
 #include "LyraGameplayTags.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
+#include "Iris/ReplicationState/ReplicationStateUtil.h"
 #include "Net/UnrealNetwork.h"
 
 UUniformGridInventoryPlacementComponent::UUniformGridInventoryPlacementComponent()
 {
-	SetIsReplicatedByDefault(true);
-	if (GetOwnerRole() == ROLE_Authority)
-	{
-		Slots.Init(nullptr, MaxSlots);
-	}
+	SetIsReplicatedByDefault(true);	
+}
+
+void UUniformGridInventoryPlacementComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	Slots.Init(nullptr, MaxSlots);
 }
 
 bool UUniformGridInventoryPlacementComponent::CanPlaceItem(TSubclassOf<ULyraInventoryItemDefinition> ItemDef,
@@ -38,6 +41,7 @@ void UUniformGridInventoryPlacementComponent::Server_AddItem_Implementation(ULyr
 {
 	int Index = Request.Position == INDEX_NONE? FindFirstEmptyPosition() : Request.Position;
 	Slots[Index] = ItemInstance;	
+	NotifySlotsChanged();
 }
 
 void UUniformGridInventoryPlacementComponent::Server_RemoveItem_Implementation(ULyraInventoryItemInstance* ItemInstance)
@@ -47,16 +51,18 @@ void UUniformGridInventoryPlacementComponent::Server_RemoveItem_Implementation(U
 	{
 		Slots[Index] = nullptr;
 	}
+	NotifySlotsChanged();
 }
 
 void UUniformGridInventoryPlacementComponent::Server_MoveItemToSlot_Implementation(ULyraInventoryItemInstance* ItemInstance,
 	FItemPlacementRequest Request)
 {
-	auto StartSlot = Slots.Find(ItemInstance);
+	auto StartSlot = Slots.Find(ItemInstance);	
 	ULyraInventoryItemInstance* TargetSlotPreviousItem = Slots[Request.Position];
 	Slots[Request.Position] = ItemInstance;
-	Slots[StartSlot] = TargetSlotPreviousItem;
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Item moved to slot"));
+	Slots[StartSlot] = TargetSlotPreviousItem;		
+	
+	NotifySlotsChanged();
 }
 
 void UUniformGridInventoryPlacementComponent::GetLifetimeReplicatedProps(
@@ -64,13 +70,12 @@ void UUniformGridInventoryPlacementComponent::GetLifetimeReplicatedProps(
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	DOREPLIFETIME(ThisClass, Slots);
+	DOREPLIFETIME_CONDITION(ThisClass, Slots, COND_OwnerOnly);	
 }
 
 void UUniformGridInventoryPlacementComponent::OnRep_Slots()
 {
-	NotifySlotsChanged();
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Slots changed OnRepFunc"));
+	NotifySlotsChanged();	
 }
 
 int UUniformGridInventoryPlacementComponent::FindFirstEmptyPosition()

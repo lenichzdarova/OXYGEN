@@ -15,6 +15,8 @@ class OXYGEN_API UUniformGridInventoryPlacementComponent : public UInventoryPlac
 public:
 	UUniformGridInventoryPlacementComponent();
 	
+	virtual void BeginPlay() override;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Inventory|Storage")
 	int32 MaxSlots = 48;
 	
@@ -34,7 +36,7 @@ protected:
 private:
 	
 	UPROPERTY(ReplicatedUsing=OnRep_Slots)
-	TArray<ULyraInventoryItemInstance*> Slots;
+	TArray<TObjectPtr<ULyraInventoryItemInstance>> Slots;	
 	
 	UFUNCTION()
 	void OnRep_Slots();
