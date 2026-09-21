@@ -76,7 +76,6 @@ public class OXYGEN : ModuleRules
 			System.IO.Path.Combine(ModuleDirectory, "Character"),
 			System.IO.Path.Combine(ModuleDirectory, "Cosmetics"),
 			System.IO.Path.Combine(ModuleDirectory, "Development"),
-			System.IO.Path.Combine(ModuleDirectory, "Equipment"),
 			System.IO.Path.Combine(ModuleDirectory, "Feedback"),
 			System.IO.Path.Combine(ModuleDirectory, "GameFeatures"),
 			System.IO.Path.Combine(ModuleDirectory, "GameModes"),
