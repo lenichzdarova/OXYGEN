@@ -2,156 +2,22 @@
 
 #include "LyraInventoryManagerComponent.h"
 
-#include "Engine/ActorChannel.h"
-#include "Engine/World.h"
-#include "GameFramework/GameplayMessageSubsystem.h"
+#include "InventoryItemRegistry.h"
 #include "LyraInventoryItemDefinition.h"
 #include "LyraInventoryItemInstance.h"
+#include "Engine/GameInstance.h"
+#include "Engine/World.h"
+#include "GameFramework/Actor.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 #include "NativeGameplayTags.h"
 #include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(LyraInventoryManagerComponent)
 
-class FLifetimeProperty;
-struct FReplicationFlags;
-
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Lyra_Inventory_Message_StackChanged, "Lyra.Inventory.Message.StackChanged");
-
-//////////////////////////////////////////////////////////////////////
-// FLyraInventoryEntry
-
-FString FLyraInventoryEntry::GetDebugString() const
-{
-	TSubclassOf<ULyraInventoryItemDefinition> ItemDef;
-	if (Instance != nullptr)
-	{
-		ItemDef = Instance->GetItemDef();
-	}
-
-	return FString::Printf(TEXT("%s (%d x %s)"), *GetNameSafe(Instance), StackCount, *GetNameSafe(ItemDef));
-}
-
-//////////////////////////////////////////////////////////////////////
-// FLyraInventoryList
-
-void FLyraInventoryList::PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize)
-{
-	for (int32 Index : RemovedIndices)
-	{
-		FLyraInventoryEntry& Stack = Entries[Index];
-		BroadcastChangeMessage(Stack, /*OldCount=*/ Stack.StackCount, /*NewCount=*/ 0);
-		Stack.LastObservedCount = 0;
-	}
-}
-
-void FLyraInventoryList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize)
-{
-	for (int32 Index : AddedIndices)
-	{
-		FLyraInventoryEntry& Stack = Entries[Index];
-		BroadcastChangeMessage(Stack, /*OldCount=*/ 0, /*NewCount=*/ Stack.StackCount);
-		Stack.LastObservedCount = Stack.StackCount;
-	}
-}
-
-void FLyraInventoryList::PostReplicatedChange(const TArrayView<int32> ChangedIndices, int32 FinalSize)
-{
-	for (int32 Index : ChangedIndices)
-	{
-		FLyraInventoryEntry& Stack = Entries[Index];
-		check(Stack.LastObservedCount != INDEX_NONE);
-		BroadcastChangeMessage(Stack, /*OldCount=*/ Stack.LastObservedCount, /*NewCount=*/ Stack.StackCount);
-		Stack.LastObservedCount = Stack.StackCount;
-	}
-}
-
-void FLyraInventoryList::BroadcastChangeMessage(FLyraInventoryEntry& Entry, int32 OldCount, int32 NewCount)
-{
-	FLyraInventoryChangeMessage Message;
-	Message.InventoryOwner = OwnerComponent;
-	Message.Instance = Entry.Instance;
-	Message.NewCount = NewCount;
-	Message.Delta = NewCount - OldCount;
-
-	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(OwnerComponent->GetWorld());
-	MessageSystem.BroadcastMessage(TAG_Lyra_Inventory_Message_StackChanged, Message);
-}
-
-ULyraInventoryItemInstance* FLyraInventoryList::AddEntry(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount)
-{
-	ULyraInventoryItemInstance* Result = nullptr;
-
-	check(ItemDef != nullptr);
- 	check(OwnerComponent);
-
-	AActor* OwningActor = OwnerComponent->GetOwner();
-	check(OwningActor->HasAuthority());
-
-	FLyraInventoryEntry& NewEntry = Entries.AddDefaulted_GetRef();
-	NewEntry.Instance = NewObject<ULyraInventoryItemInstance>(OwnerComponent->GetOwner());  //@TODO: Using the actor instead of component as the outer due to UE-127172
-	NewEntry.Instance->SetItemDef(ItemDef);
-	for (ULyraInventoryItemFragment* Fragment : GetDefault<ULyraInventoryItemDefinition>(ItemDef)->Fragments)
-	{
-		if (Fragment != nullptr)
-		{
-			Fragment->OnInstanceCreated(NewEntry.Instance);
-		}
-	}
-	NewEntry.StackCount = StackCount;
-	Result = NewEntry.Instance;
-
-	//const ULyraInventoryItemDefinition* ItemCDO = GetDefault<ULyraInventoryItemDefinition>(ItemDef);
-	MarkItemDirty(NewEntry);
-
-	return Result;
-}
-
-void FLyraInventoryList::AddEntry(ULyraInventoryItemInstance* Instance)
-{
-	AActor* OwningActor = OwnerComponent->GetOwner();
-	check(OwningActor->HasAuthority());
-
-	FLyraInventoryEntry& NewEntry = Entries.AddDefaulted_GetRef();
-	NewEntry.Instance = NewObject<ULyraInventoryItemInstance>(OwnerComponent->GetOwner());
-	NewEntry.Instance->SetItemDef(Instance->GetItemDef());
-	NewEntry.Instance->StatTags = Instance->StatTags;
-	NewEntry.StackCount = 1;	
-	MarkItemDirty(NewEntry);
-}
-
-void FLyraInventoryList::RemoveEntry(ULyraInventoryItemInstance* Instance)
-{
-	for (auto EntryIt = Entries.CreateIterator(); EntryIt; ++EntryIt)
-	{
-		FLyraInventoryEntry& Entry = *EntryIt;
-		if (Entry.Instance == Instance)
-		{
-			EntryIt.RemoveCurrent();
-			MarkArrayDirty();
-		}
-	}
-}
-
-TArray<ULyraInventoryItemInstance*> FLyraInventoryList::GetAllItems() const
-{
-	TArray<ULyraInventoryItemInstance*> Results;
-	Results.Reserve(Entries.Num());
-	for (const FLyraInventoryEntry& Entry : Entries)
-	{
-		if (Entry.Instance != nullptr) //@TODO: Would prefer to not deal with this here and hide it further?
-		{
-			Results.Add(Entry.Instance);
-		}
-	}
-	return Results;
-}
-
-//////////////////////////////////////////////////////////////////////
-// ULyraInventoryManagerComponent
 
 ULyraInventoryManagerComponent::ULyraInventoryManagerComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
-	, InventoryList(this)
 {
 	SetIsReplicatedByDefault(true);
 }
@@ -159,203 +25,355 @@ ULyraInventoryManagerComponent::ULyraInventoryManagerComponent(const FObjectInit
 void ULyraInventoryManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	PlacementManager = GetOwner()->FindComponentByClass<UInventoryPlacementManagerComponent>();
+	PlacementManager = GetOwner() ? GetOwner()->FindComponentByClass<UInventoryPlacementManagerComponent>() : nullptr;
 }
 
-void ULyraInventoryManagerComponent::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
+void ULyraInventoryManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME_CONDITION(ThisClass, InventoryList, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, OwnedItems, COND_OwnerOnly);
 }
 
-bool ULyraInventoryManagerComponent::CanAddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount)
+bool ULyraInventoryManagerComponent::CanAddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount) const
 {
-	//@TODO: Add support for stack limit / uniqueness checks / etc...
+	if (ItemDef == nullptr || StackCount <= 0)
+	{
+		return false;
+	}
+
 	if (PlacementManager)
 	{
-		FItemPlacementRequest Request;
-		return PlacementManager->CanPlaceItem(ItemDef, Request);
+		return PlacementManager->CanPlaceItem(ItemDef, FItemPlacementRequest());
 	}
+
 	return true;
 }
 
-void ULyraInventoryManagerComponent::Server_AddItemDefinition_Implementation( TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount)
+void ULyraInventoryManagerComponent::Server_AddItemDefinition_Implementation(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount)
 {
 	AddItemDefinition(ItemDef, StackCount);
 }
 
-bool ULyraInventoryManagerComponent::Server_AddItemDefinition_Validate(	TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount)
+bool ULyraInventoryManagerComponent::Server_AddItemDefinition_Validate(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount)
 {
 	return ItemDef != nullptr && StackCount > 0;
 }
 
-ULyraInventoryItemInstance* ULyraInventoryManagerComponent::AddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount)
+FGuid ULyraInventoryManagerComponent::AddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 StackCount, FItemPlacementRequest PlacementRequest)
 {
-	ULyraInventoryItemInstance* Result = nullptr;
-	if (!CanAddItemDefinition(ItemDef, StackCount))
+	if (!HasAuthority() || !CanAddItemDefinition(ItemDef, StackCount))
 	{
-		return Result;
+		return FGuid();
 	}
-	
-	if (ItemDef != nullptr)
+
+	UInventoryItemRegistry* Registry = GetRegistry();
+	if (!Registry)
 	{
-		Result = InventoryList.AddEntry(ItemDef, StackCount);
-		
-		if (IsUsingRegisteredSubObjectList() && IsReadyForReplication() && Result)
-		{
-			AddReplicatedSubObject(Result);
-		}
-		PlacementManager->Server_AddItem(Result, FItemPlacementRequest());
-	}	
-	return Result;
+		return FGuid();
+	}
+
+	const FGuid ItemId = Registry->CreateItem(ItemDef, StackCount);
+	if (!ItemId.IsValid())
+	{
+		return FGuid();
+	}
+
+	FItemView View;
+	if (!Registry->GetView(ItemId, View) || !AddOwnedView(View))
+	{
+		Registry->DestroyItem(ItemId);
+		return FGuid();
+	}
+
+	PlacementRequest.ItemId = ItemId;
+	if (PlacementManager && !PlacementManager->AddItem(ItemId, PlacementRequest))
+	{
+		RemoveOwnedItem(ItemId);
+		Registry->DestroyItem(ItemId);
+		return FGuid();
+	}
+
+	BroadcastChangeMessage(View, 0, View.StackCount);
+	return ItemId;
 }
 
-void ULyraInventoryManagerComponent::AddItemInstance(ULyraInventoryItemInstance* ItemInstance, FItemPlacementRequest PlacementRequest)
+FGuid ULyraInventoryManagerComponent::AddItemInstance(ULyraInventoryItemInstance* ItemInstance, FItemPlacementRequest PlacementRequest)
 {
-	if (PlacementManager && !PlacementManager->CanPlaceItem(ItemInstance->GetItemDef(), PlacementRequest) )
+	if (!HasAuthority() || !IsValid(ItemInstance))
+	{
+		return FGuid();
+	}
+
+	UInventoryItemRegistry* Registry = GetRegistry();
+	if (!Registry)
+	{
+		return FGuid();
+	}
+
+	const FGuid ItemId = Registry->AdoptInstance(ItemInstance, 1);
+	FItemView View;
+	if (!ItemId.IsValid() || !Registry->GetView(ItemId, View))
+	{
+		return FGuid();
+	}
+
+	if (PlacementManager && !PlacementManager->CanPlaceItem(View.Def, PlacementRequest))
+	{
+		return FGuid();
+	}
+
+	if (ContainsItem(ItemId))
+	{
+		return ItemId;
+	}
+
+	if (!AddOwnedView(View))
+	{
+		return FGuid();
+	}
+
+	PlacementRequest.ItemId = ItemId;
+	if (PlacementManager && !PlacementManager->AddItem(ItemId, PlacementRequest))
+	{
+		RemoveOwnedItem(ItemId);
+		return FGuid();
+	}
+
+	BroadcastChangeMessage(View, 0, View.StackCount);
+	return ItemId;
+}
+
+void ULyraInventoryManagerComponent::RemoveItem(FGuid ItemId, bool bDestroyRecord)
+{
+	if (!HasAuthority() || !ItemId.IsValid())
 	{
 		return;
-	}	
-		
-	InventoryList.AddEntry(ItemInstance);
-	if (IsUsingRegisteredSubObjectList() && IsReadyForReplication() && ItemInstance)
-	{
-		AddReplicatedSubObject(ItemInstance);
-	}	
-	PlacementManager->Server_AddItem(ItemInstance, PlacementRequest);
-}
-
-void ULyraInventoryManagerComponent::RemoveItemInstance(ULyraInventoryItemInstance* ItemInstance)
-{
-	InventoryList.RemoveEntry(ItemInstance);
-
-	if (ItemInstance && IsUsingRegisteredSubObjectList())
-	{
-		RemoveReplicatedSubObject(ItemInstance);
 	}
-}
 
-TArray<ULyraInventoryItemInstance*> ULyraInventoryManagerComponent::GetAllItems() const
-{
-	return InventoryList.GetAllItems();
-}
-
-ULyraInventoryItemInstance* ULyraInventoryManagerComponent::FindFirstItemStackByDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef) const
-{
-	for (const FLyraInventoryEntry& Entry : InventoryList.Entries)
+	FItemView Removed;
+	if (!RemoveOwnedItem(ItemId, &Removed))
 	{
-		ULyraInventoryItemInstance* Instance = Entry.Instance;
+		return;
+	}
 
-		if (IsValid(Instance))
+	if (PlacementManager)
+	{
+		PlacementManager->RemoveItem(ItemId);
+	}
+
+	if (bDestroyRecord)
+	{
+		if (UInventoryItemRegistry* Registry = GetRegistry())
 		{
-			if (Instance->GetItemDef() == ItemDef)
-			{
-				return Instance;
-			}
+			Registry->DestroyItem(ItemId);
 		}
 	}
 
-	return nullptr;
+	BroadcastChangeMessage(Removed, Removed.StackCount, 0);
+}
+
+bool ULyraInventoryManagerComponent::TransferItemTo(FGuid ItemId, ULyraInventoryManagerComponent* Destination, FItemPlacementRequest PlacementRequest)
+{
+	if (!HasAuthority() || !Destination || Destination == this || !ContainsItem(ItemId))
+	{
+		return false;
+	}
+
+	UInventoryItemRegistry* Registry = GetRegistry();
+	FItemView View;
+	if (!Registry || !Registry->GetView(ItemId, View))
+	{
+		return false;
+	}
+
+	if (Destination->PlacementManager && !Destination->PlacementManager->CanPlaceItem(View.Def, PlacementRequest))
+	{
+		return false;
+	}
+
+	FItemView Removed;
+	if (!RemoveOwnedItem(ItemId, &Removed))
+	{
+		return false;
+	}
+
+	if (PlacementManager)
+	{
+		PlacementManager->RemoveItem(ItemId);
+	}
+
+	if (!Destination->AddOwnedView(View))
+	{
+		AddOwnedView(Removed);
+		if (PlacementManager)
+		{
+			FItemPlacementRequest RestoreRequest;
+			RestoreRequest.ItemId = ItemId;
+			PlacementManager->AddItem(ItemId, RestoreRequest);
+		}
+		return false;
+	}
+
+	PlacementRequest.ItemId = ItemId;
+	if (Destination->PlacementManager && !Destination->PlacementManager->AddItem(ItemId, PlacementRequest))
+	{
+		Destination->RemoveOwnedItem(ItemId);
+		AddOwnedView(Removed);
+		if (PlacementManager)
+		{
+			FItemPlacementRequest RestoreRequest;
+			RestoreRequest.ItemId = ItemId;
+			PlacementManager->AddItem(ItemId, RestoreRequest);
+		}
+		return false;
+	}
+
+	BroadcastChangeMessage(Removed, Removed.StackCount, 0);
+	Destination->BroadcastChangeMessage(View, 0, View.StackCount);
+	return true;
+}
+
+FItemView ULyraInventoryManagerComponent::FindFirstItemByDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef) const
+{
+	for (const FItemView& Item : OwnedItems)
+	{
+		if (Item.Def == ItemDef)
+		{
+			return Item;
+		}
+	}
+	return FItemView();
 }
 
 int32 ULyraInventoryManagerComponent::GetTotalItemCountByDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef) const
 {
 	int32 TotalCount = 0;
-	for (const FLyraInventoryEntry& Entry : InventoryList.Entries)
+	for (const FItemView& Item : OwnedItems)
 	{
-		ULyraInventoryItemInstance* Instance = Entry.Instance;
-
-		if (IsValid(Instance))
+		if (Item.Def == ItemDef)
 		{
-			if (Instance->GetItemDef() == ItemDef)
-			{
-				++TotalCount;
-			}
+			TotalCount += Item.StackCount;
 		}
 	}
-
 	return TotalCount;
 }
 
 bool ULyraInventoryManagerComponent::ConsumeItemsByDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 NumToConsume)
 {
-	AActor* OwningActor = GetOwner();
-	if (!OwningActor || !OwningActor->HasAuthority())
+	if (!HasAuthority() || ItemDef == nullptr || NumToConsume <= 0)
 	{
 		return false;
 	}
 
-	//@TODO: N squared right now as there's no acceleration structure
-	int32 TotalConsumed = 0;
-	while (TotalConsumed < NumToConsume)
+	int32 Remaining = NumToConsume;
+	TArray<FGuid> ToRemove;
+
+	for (const FItemView& Item : OwnedItems)
 	{
-		if (ULyraInventoryItemInstance* Instance = ULyraInventoryManagerComponent::FindFirstItemStackByDefinition(ItemDef))
+		if (Remaining <= 0)
 		{
-			InventoryList.RemoveEntry(Instance);
-			++TotalConsumed;
+			break;
 		}
-		else
+		if (Item.Def == ItemDef)
 		{
-			return false;
+			ToRemove.Add(Item.ItemId);
+			Remaining -= Item.StackCount;
 		}
 	}
 
-	return TotalConsumed == NumToConsume;
+	if (Remaining > 0)
+	{
+		return false;
+	}
+
+	for (const FGuid& ItemId : ToRemove)
+	{
+		RemoveItem(ItemId, true);
+	}
+
+	return true;
 }
 
-void ULyraInventoryManagerComponent::ReadyForReplication()
+bool ULyraInventoryManagerComponent::ContainsItem(FGuid ItemId) const
 {
-	Super::ReadyForReplication();
-
-	// Register existing ULyraInventoryItemInstance
-	if (IsUsingRegisteredSubObjectList())
+	for (const FItemView& Item : OwnedItems)
 	{
-		for (const FLyraInventoryEntry& Entry : InventoryList.Entries)
+		if (Item.ItemId == ItemId)
 		{
-			ULyraInventoryItemInstance* Instance = Entry.Instance;
+			return true;
+		}
+	}
+	return false;
+}
 
-			if (IsValid(Instance))
+ULyraInventoryItemInstance* ULyraInventoryManagerComponent::GetItemInstance(FGuid ItemId) const
+{
+	UInventoryItemRegistry* Registry = GetRegistry();
+	return Registry ? Registry->GetItem(ItemId) : nullptr;
+}
+
+void ULyraInventoryManagerComponent::OnRep_OwnedItems()
+{
+	for (const FItemView& Item : OwnedItems)
+	{
+		BroadcastChangeMessage(Item, 0, Item.StackCount);
+	}
+}
+
+void ULyraInventoryManagerComponent::BroadcastChangeMessage(const FItemView& Item, int32 OldCount, int32 NewCount)
+{
+	if (!GetWorld())
+	{
+		return;
+	}
+
+	FLyraInventoryChangeMessage Message;
+	Message.InventoryOwner = this;
+	Message.Item = Item;
+	Message.NewCount = NewCount;
+	Message.Delta = NewCount - OldCount;
+
+	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+	MessageSystem.BroadcastMessage(TAG_Lyra_Inventory_Message_StackChanged, Message);
+}
+
+bool ULyraInventoryManagerComponent::AddOwnedView(const FItemView& View)
+{
+	if (!View.IsValid() || ContainsItem(View.ItemId))
+	{
+		return false;
+	}
+
+	OwnedItems.Add(View);
+	return true;
+}
+
+bool ULyraInventoryManagerComponent::RemoveOwnedItem(FGuid ItemId, FItemView* OutRemoved)
+{
+	for (int32 Index = 0; Index < OwnedItems.Num(); ++Index)
+	{
+		if (OwnedItems[Index].ItemId == ItemId)
+		{
+			if (OutRemoved)
 			{
-				AddReplicatedSubObject(Instance);
+				*OutRemoved = OwnedItems[Index];
 			}
+			OwnedItems.RemoveAt(Index);
+			return true;
 		}
 	}
+	return false;
 }
 
-bool ULyraInventoryManagerComponent::ReplicateSubobjects(UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags)
+UInventoryItemRegistry* ULyraInventoryManagerComponent::GetRegistry() const
 {
-	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
-
-	for (FLyraInventoryEntry& Entry : InventoryList.Entries)
-	{
-		ULyraInventoryItemInstance* Instance = Entry.Instance;
-
-		if (Instance && IsValid(Instance))
-		{
-			WroteSomething |= Channel->ReplicateSubobject(Instance, *Bunch, *RepFlags);
-		}
-	}
-
-	return WroteSomething;
+	const UWorld* World = GetWorld();
+	const UGameInstance* GI = World ? World->GetGameInstance() : nullptr;
+	return GI ? GI->GetSubsystem<UInventoryItemRegistry>() : nullptr;
 }
 
-//////////////////////////////////////////////////////////////////////
-//
-
-// UCLASS(Abstract)
-// class ULyraInventoryFilter : public UObject
-// {
-// public:
-// 	virtual bool PassesFilter(ULyraInventoryItemInstance* Instance) const { return true; }
-// };
-
-// UCLASS()
-// class ULyraInventoryFilter_HasTag : public ULyraInventoryFilter
-// {
-// public:
-// 	virtual bool PassesFilter(ULyraInventoryItemInstance* Instance) const { return true; }
-// };
-
-
+bool ULyraInventoryManagerComponent::HasAuthority() const
+{
+	const AActor* Owner = GetOwner();
+	return Owner && Owner->HasAuthority();
+}
