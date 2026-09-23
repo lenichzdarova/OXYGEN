@@ -6,41 +6,47 @@
 #include "InventoryPlacementManagerComponent.h"
 #include "UniformGridInventoryPlacementComponent.generated.h"
 
-
-UCLASS(BlueprintType, ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent))
+UCLASS(BlueprintType, ClassGroup = (Inventory), meta = (BlueprintSpawnableComponent))
 class OXYGEN_API UUniformGridInventoryPlacementComponent : public UInventoryPlacementManagerComponent
 {
 	GENERATED_BODY()
 
 public:
 	UUniformGridInventoryPlacementComponent();
-	
+
 	virtual void BeginPlay() override;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Inventory|Storage")
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Storage")
 	int32 MaxSlots = 48;
-	
-	
-	virtual bool CanPlaceItem(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, FItemPlacementRequest Request) override;
-	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;	
-		
-	UFUNCTION(BlueprintCallable)
-	TArray<ULyraInventoryItemInstance*> GetSlots() {return Slots;}
-	
+
+	virtual bool CanPlaceItem(FGuid ItemId, FItemPlacementRequest Request) override;
+	virtual bool CanPlaceDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, FItemPlacementRequest Request) override;
+
+	virtual bool AddItem(FGuid ItemId, FItemPlacementRequest Request) override;
+	virtual bool RemoveItem(FGuid ItemId) override;
+	virtual bool MoveItem(FGuid ItemId, FItemPlacementRequest Request) override;
+
+	virtual bool HasItem(FGuid ItemId) const override;
+	virtual TArray<FGuid> GetPlacedItems() const override;
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Placement")
+	const TArray<FItemData>& GetSlots() const { return Slots; }
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Placement")
+	FItemData GetSlotData(int32 Index) const;
+
 protected:
-	virtual void Server_AddItem_Implementation(ULyraInventoryItemInstance* ItemInstance, FItemPlacementRequest Request) override;	
-	virtual void Server_RemoveItem_Implementation(ULyraInventoryItemInstance* ItemInstance) override;	
-	virtual void Server_MoveItemToSlot_Implementation(ULyraInventoryItemInstance* ItemInstance, FItemPlacementRequest Request) override;
-	
-	
-private:
-	
-	UPROPERTY(ReplicatedUsing=OnRep_Slots)
-	TArray<TObjectPtr<ULyraInventoryItemInstance>> Slots;	
-	
 	UFUNCTION()
 	void OnRep_Slots();
-	
-	int FindFirstEmptyPosition();
-	void NotifySlotsChanged();
+
+private:
+	bool IsSlotIndexValid(int32 Index) const;
+	bool IsSlotEmpty(int32 Index) const;
+	int32 FindSlotIndex(FGuid ItemId) const;
+	int32 FindFirstEmptyPosition() const;
+	int32 ResolveTargetPosition(FItemPlacementRequest Request) const;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Slots)
+	TArray<FItemData> Slots;
 };

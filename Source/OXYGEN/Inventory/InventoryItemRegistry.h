@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "LyraInventoryItemDefinition.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "System/GameplayTagStack.h"
 #include "Templates/SubclassOf.h"
 #include "InventoryItemRegistry.generated.h"
 
-class ULyraInventoryItemDefinition;
 class ULyraInventoryItemInstance;
 
 USTRUCT(BlueprintType)
@@ -20,7 +20,7 @@ struct FItemData
 	FGuid ItemId;
 
 	UPROPERTY(BlueprintReadOnly)
-	TSubclassOf<ULyraInventoryItemDefinition> Def;
+	TSubclassOf<ULyraInventoryItemDefinition> Def = nullptr;
 
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTagStackContainer StatTags;

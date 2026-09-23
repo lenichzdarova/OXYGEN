@@ -73,47 +73,4 @@ class ULoadoutManagerComponent : public UPawnComponent
 public:
 	ULoadoutManagerComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	/** Поставить/заменить предмет по индексу. Index == -1 → добавить в конец. */
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Loadout")
-	void Server_Equip(FGameplayTag SlotTag, ULyraInventoryItemInstance* ItemInstance);
-
-	/** Снять по индексу. Возвращает снятый ItemInstance. */
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Loadout")
-	void Unequip(FGameplayTag SlotTag);
-
-	/** Поменять два entry местами (для DnD). */
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Loadout")
-	bool Swap(FGameplayTag SlotTagA, FGameplayTag SlotTagB);
-
-	// --- Queries (UI) ---
-
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Loadout")
-	int32 Num() const { return EntryList.Entries.Num(); }
-
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Loadout")
-	ULyraInventoryItemInstance* GetItemByTag(FGameplayTag SlotTag) const;
-
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Loadout")
-	ULyraEquipmentInstance* GetEquipmentByTag(FGameplayTag SlotTag) const;
-
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Loadout")
-	TArray<FLoadoutEntry> GetAllEntries() const { return EntryList.Entries; }	
-
-protected:
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
-	virtual void ReadyForReplication() override;
-	
-private:
-	void RemoveItemFromPlayerInventory(ULyraInventoryItemInstance* InItemInstance);
-
-	UPROPERTY(Replicated)
-	FLoadoutEntryList EntryList;
-
-	void NotifyLoadoutChanged();
-
-	bool InternalAddEntry(ULyraInventoryItemInstance* ItemInstance, int32 AtIndex /* -1 = end */);
-	void InternalRemoveEntry(int32 Index);
-
-	ULyraAbilitySystemComponent* GetOwnerASC() const;
 };

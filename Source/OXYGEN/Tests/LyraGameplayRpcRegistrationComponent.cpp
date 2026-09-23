@@ -217,9 +217,9 @@ bool ULyraGameplayRpcRegistrationComponent::HttpGetPlayerVitalsCommand(const FHt
 	if (ULyraInventoryManagerComponent* InventoryComponent = LPC->GetComponentByClass<ULyraInventoryManagerComponent>())
 	{
 		JsonWriter->WriteArrayStart(TEXT("inventory"));
-		for (ULyraInventoryItemInstance* ItemInstance : InventoryComponent->GetAllItems())
+		for (const FGuid& ItemId : InventoryComponent->GetAllItems())
 		{
-			// TODO: Dump any relevant player info here.
+			JsonWriter->WriteValue(ItemId.ToString());
 		}
 		JsonWriter->WriteArrayEnd();
 	}

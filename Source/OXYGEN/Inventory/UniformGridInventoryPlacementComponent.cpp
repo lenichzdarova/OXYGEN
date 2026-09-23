@@ -1,102 +1,172 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "UniformGridInventoryPlacementComponent.h"
-#include "LyraGameplayTags.h"
-#include "GameFramework/GameplayMessageSubsystem.h"
-#include "Iris/ReplicationState/ReplicationStateUtil.h"
+
 #include "Net/UnrealNetwork.h"
 
 UUniformGridInventoryPlacementComponent::UUniformGridInventoryPlacementComponent()
 {
-	SetIsReplicatedByDefault(true);	
+	SetIsReplicatedByDefault(true);
 }
 
 void UUniformGridInventoryPlacementComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	Slots.Init(nullptr, MaxSlots);
+	Slots.SetNum(MaxSlots);
 }
 
-bool UUniformGridInventoryPlacementComponent::CanPlaceItem(TSubclassOf<ULyraInventoryItemDefinition> ItemDef,
-                                                           FItemPlacementRequest Request)
-{
-	bool Result = false;
-	if (Request.Position != INDEX_NONE)
-	{
-		Result = Slots[Request.Position] == nullptr;
-	}
-	else
-	{
-		Request.Position = FindFirstEmptyPosition();
-		Result = Request.Position != INDEX_NONE;
-	}	
-	return Result; 
-}
-
-
-
-void UUniformGridInventoryPlacementComponent::Server_AddItem_Implementation(ULyraInventoryItemInstance* ItemInstance,
-                                                      FItemPlacementRequest Request)
-{
-	int Index = Request.Position == INDEX_NONE? FindFirstEmptyPosition() : Request.Position;
-	Slots[Index] = ItemInstance;	
-	NotifySlotsChanged();
-}
-
-void UUniformGridInventoryPlacementComponent::Server_RemoveItem_Implementation(ULyraInventoryItemInstance* ItemInstance)
-{
-	auto Index = Slots.Find(ItemInstance);
-	if (Index != INDEX_NONE)
-	{
-		Slots[Index] = nullptr;
-	}
-	NotifySlotsChanged();
-}
-
-void UUniformGridInventoryPlacementComponent::Server_MoveItemToSlot_Implementation(ULyraInventoryItemInstance* ItemInstance,
-	FItemPlacementRequest Request)
-{
-	auto StartSlot = Slots.Find(ItemInstance);	
-	ULyraInventoryItemInstance* TargetSlotPreviousItem = Slots[Request.Position];
-	Slots[Request.Position] = ItemInstance;
-	Slots[StartSlot] = TargetSlotPreviousItem;		
-	
-	NotifySlotsChanged();
-}
-
-void UUniformGridInventoryPlacementComponent::GetLifetimeReplicatedProps(
-	TArray<class FLifetimeProperty>& OutLifetimeProps) const
+void UUniformGridInventoryPlacementComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
-	DOREPLIFETIME_CONDITION(ThisClass, Slots, COND_OwnerOnly);	
+	DOREPLIFETIME_CONDITION(ThisClass, Slots, COND_OwnerOnly);
+}
+
+bool UUniformGridInventoryPlacementComponent::CanPlaceItem(FGuid ItemId, FItemPlacementRequest Request)
+{
+	if (!ItemId.IsValid() || HasItem(ItemId))
+	{
+		return false;
+	}
+
+	if (HasAuthority())
+	{
+		return Super::CanPlaceItem(ItemId, Request);
+	}
+
+	// На клиенте реестра нет. Для превью драга достаточно свободной клетки.
+	return CanPlaceDefinition(nullptr, Request);
+}
+
+bool UUniformGridInventoryPlacementComponent::CanPlaceDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, FItemPlacementRequest Request)
+{
+	const int32 Target = ResolveTargetPosition(Request);
+	return IsSlotIndexValid(Target) && IsSlotEmpty(Target);
+}
+
+bool UUniformGridInventoryPlacementComponent::AddItem(FGuid ItemId, FItemPlacementRequest Request)
+{
+	if (!HasAuthority() || !CanPlaceItem(ItemId, Request))
+	{
+		return false;
+	}
+
+	const FItemData Data = GetItemData(ItemId);
+	if (!Data.IsValid())
+	{
+		return false;
+	}
+
+	const int32 Target = ResolveTargetPosition(Request);
+	Slots[Target] = Data;
+	NotifyChanged(ItemId);
+	return true;
+}
+
+bool UUniformGridInventoryPlacementComponent::RemoveItem(FGuid ItemId)
+{
+	if (!HasAuthority())
+	{
+		return false;
+	}
+
+	const int32 Index = FindSlotIndex(ItemId);
+	if (Index == INDEX_NONE)
+	{
+		return false;
+	}
+
+	Slots[Index] = FItemData();
+	NotifyChanged(ItemId);
+	return true;
+}
+
+bool UUniformGridInventoryPlacementComponent::MoveItem(FGuid ItemId, FItemPlacementRequest Request)
+{
+	if (!HasAuthority())
+	{
+		return false;
+	}
+
+	const int32 From = FindSlotIndex(ItemId);
+	if (From == INDEX_NONE || !IsSlotIndexValid(Request.Position) || From == Request.Position)
+	{
+		return false;
+	}
+
+	const FItemData Swapped = Slots[Request.Position];
+	Slots[Request.Position] = Slots[From];
+	Slots[From] = Swapped;
+
+	NotifyChanged(ItemId);
+	return true;
+}
+
+bool UUniformGridInventoryPlacementComponent::HasItem(FGuid ItemId) const
+{
+	return FindSlotIndex(ItemId) != INDEX_NONE;
+}
+
+TArray<FGuid> UUniformGridInventoryPlacementComponent::GetPlacedItems() const
+{
+	TArray<FGuid> Result;
+	Result.Reserve(Slots.Num());
+
+	for (const FItemData& Slot : Slots)
+	{
+		if (Slot.ItemId.IsValid())
+		{
+			Result.Add(Slot.ItemId);
+		}
+	}
+
+	return Result;
+}
+
+FItemData UUniformGridInventoryPlacementComponent::GetSlotData(int32 Index) const
+{
+	return IsSlotIndexValid(Index) ? Slots[Index] : FItemData();
 }
 
 void UUniformGridInventoryPlacementComponent::OnRep_Slots()
 {
-	NotifySlotsChanged();	
+	NotifyChanged(FGuid());
 }
 
-int UUniformGridInventoryPlacementComponent::FindFirstEmptyPosition()
+bool UUniformGridInventoryPlacementComponent::IsSlotIndexValid(int32 Index) const
 {
-	for (int32 i = 0; i < Slots.Num(); ++i)
+	return Slots.IsValidIndex(Index);
+}
+
+bool UUniformGridInventoryPlacementComponent::IsSlotEmpty(int32 Index) const
+{
+	return IsSlotIndexValid(Index) && !Slots[Index].IsValid();
+}
+
+int32 UUniformGridInventoryPlacementComponent::FindSlotIndex(FGuid ItemId) const
+{
+	if (!ItemId.IsValid())
 	{
-		if (Slots[i] == nullptr)
+		return INDEX_NONE;
+	}
+
+	return Slots.IndexOfByPredicate([&ItemId](const FItemData& Slot)
+	{
+		return Slot.ItemId == ItemId;
+	});
+}
+
+int32 UUniformGridInventoryPlacementComponent::FindFirstEmptyPosition() const
+{
+	for (int32 Index = 0; Index < Slots.Num(); ++Index)
+	{
+		if (IsSlotEmpty(Index))
 		{
-			return i;
+			return Index;
 		}
 	}
+
 	return INDEX_NONE;
 }
 
-void UUniformGridInventoryPlacementComponent::NotifySlotsChanged()
+int32 UUniformGridInventoryPlacementComponent::ResolveTargetPosition(FItemPlacementRequest Request) const
 {
-	FPlacementManagerChangeMessage Message;
-	Message.SenderComponent = this;
-	Message.Slots = Slots;
-    
-	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
-	MessageSystem.BroadcastMessage(LyraGameplayTags::Inventory_Placement_Message_GridChanged, Message);
+	return Request.Position == INDEX_NONE ? FindFirstEmptyPosition() : Request.Position;
 }
-
