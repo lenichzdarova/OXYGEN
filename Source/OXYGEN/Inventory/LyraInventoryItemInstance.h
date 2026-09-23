@@ -50,6 +50,11 @@ public:
 		return ItemDef;
 	}
 
+	const FGameplayTagStackContainer& GetStatTags() const
+	{
+		return StatTags;
+	}
+
 	UFUNCTION(BlueprintCallable, BlueprintPure=false, meta=(DeterminesOutputType=FragmentClass))
 	const ULyraInventoryItemFragment* FindFragmentByClass(TSubclassOf<ULyraInventoryItemFragment> FragmentClass) const;
 
@@ -66,6 +71,7 @@ private:
 	void SetItemDef(TSubclassOf<ULyraInventoryItemDefinition> InDef);
 
 	friend struct FLyraInventoryList;
+	friend class UInventoryItemRegistry;
 
 private:
 	UPROPERTY(Replicated)
