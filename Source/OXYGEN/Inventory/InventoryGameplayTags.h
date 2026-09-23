@@ -7,5 +7,10 @@ namespace InventoryGameplayTags
 	OXYGEN_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_Message_ItemAdded);
 	OXYGEN_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_Message_ItemRemoved);
 	OXYGEN_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_Message_ItemsChanged);
+	
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_QuickBar_Message_SlotsChanged);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_QuickBar_Message_ActiveIndexChanged)
+	
+	
 	OXYGEN_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Inventory_Placement_Message_GridChanged);
 }
