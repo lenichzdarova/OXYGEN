@@ -2,15 +2,17 @@
 
 #pragma once
 
+#include "Components/ControllerComponent.h"
 #include "Components/PawnComponent.h"
-#include "Inventory/InventoryTypes.h"
+#include "Inventory/LyraInventoryItemInstance.h"
 
 #include "LyraQuickBarComponent.generated.h"
 
+class AActor;
 class ULyraEquipmentInstance;
 class ULyraEquipmentManagerComponent;
-class ULyraInventoryItemInstance;
-class UInventoryItemRegistry;
+class UObject;
+struct FFrame;
 
 UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent))
 class ULyraQuickBarComponent : public UPawnComponent
@@ -19,9 +21,6 @@ class ULyraQuickBarComponent : public UPawnComponent
 
 public:
 	ULyraQuickBarComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
-	virtual void BeginPlay() override;
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintCallable, Category="Lyra")
 	void CycleActiveSlotForward();
@@ -32,38 +31,37 @@ public:
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category="Lyra")
 	void SetActiveSlotIndex(int32 NewIndex);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure=false, Category="Lyra")
-	TArray<FItemView> GetSlots() const { return Slots; }
+	UFUNCTION(BlueprintCallable, BlueprintPure=false)
+	TArray<ULyraInventoryItemInstance*> GetSlots() const
+	{
+		return Slots;
+	}
 
-	UFUNCTION(BlueprintCallable, BlueprintPure=false, Category="Lyra")
+	UFUNCTION(BlueprintCallable, BlueprintPure=false)
 	int32 GetActiveSlotIndex() const { return ActiveSlotIndex; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure=false, Category="Lyra")
-	FItemView GetActiveSlotView() const;
-
-	UFUNCTION(BlueprintCallable, BlueprintPure=false, Category="Lyra")
-	FGuid GetActiveSlotItemId() const;
-
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Lyra")
+	UFUNCTION(BlueprintCallable, BlueprintPure = false)
 	ULyraInventoryItemInstance* GetActiveSlotItem() const;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure=false, Category="Lyra")
+	UFUNCTION(BlueprintCallable, BlueprintPure=false)
 	int32 GetNextFreeItemSlot() const;
 
-	UFUNCTION(Server, Reliable, BlueprintCallable, Category="Lyra")
-	void Server_AddItemToSlot(int32 SlotIndex, FGuid ItemId);
+	UFUNCTION(Server, Reliable, BlueprintCallable, BlueprintAuthorityOnly)
+	void AddItemToSlot(int32 SlotIndex, ULyraInventoryItemInstance* Item);
 
-	UFUNCTION(Server, Reliable, BlueprintCallable, Category="Lyra")
-	void Server_RemoveItemFromSlot(int32 SlotIndex);
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
+	ULyraInventoryItemInstance* RemoveItemFromSlot(int32 SlotIndex);
 
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Lyra")
-	bool AddItemToSlot(int32 SlotIndex, FGuid ItemId);
+	virtual void BeginPlay() override;
 
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Lyra")
-	FItemView RemoveItemFromSlot(int32 SlotIndex);
+private:
+	void UnequipItemInSlot();
+	void EquipItemInSlot();
+
+	ULyraEquipmentManagerComponent* FindEquipmentManager() const;
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category="Lyra")
+	UPROPERTY()
 	int32 NumSlots = 5;
 
 	UFUNCTION()
@@ -73,14 +71,8 @@ protected:
 	void OnRep_ActiveSlotIndex();
 
 private:
-	void UnequipItemInSlot();
-	void EquipItemInSlot();
-	ULyraEquipmentManagerComponent* FindEquipmentManager() const;
-	UInventoryItemRegistry* GetRegistry() const;
-	int32 FindItemIndex(FGuid ItemId) const;
-
 	UPROPERTY(ReplicatedUsing=OnRep_Slots)
-	TArray<FItemView> Slots;
+	TArray<TObjectPtr<ULyraInventoryItemInstance>> Slots;
 
 	UPROPERTY(ReplicatedUsing=OnRep_ActiveSlotIndex)
 	int32 ActiveSlotIndex = -1;
@@ -89,6 +81,7 @@ private:
 	TObjectPtr<ULyraEquipmentInstance> EquippedItem;
 };
 
+
 USTRUCT(BlueprintType)
 struct FLyraQuickBarSlotsChangedMessage
 {
@@ -96,13 +89,14 @@ struct FLyraQuickBarSlotsChangedMessage
 
 	UPROPERTY(BlueprintReadOnly, Category=Inventory)
 	TObjectPtr<AActor> Owner = nullptr;
-
+	
 	UPROPERTY(BlueprintReadOnly, Category=Inventory)
 	TObjectPtr<ULyraQuickBarComponent> Component = nullptr;
 
-	UPROPERTY(BlueprintReadOnly, Category=Inventory)
-	TArray<FItemView> Slots;
+	UPROPERTY(BlueprintReadOnly, Category = Inventory)
+	TArray<TObjectPtr<ULyraInventoryItemInstance>> Slots;
 };
+
 
 USTRUCT(BlueprintType)
 struct FLyraQuickBarActiveIndexChangedMessage
