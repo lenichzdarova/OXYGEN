@@ -10,7 +10,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
 
-ULoadoutManagerComponent::ULoadoutManagerComponent(const FObjectInitializer& ObjectInitializer)
+ULoadoutManagerComponent::ULoadoutManagerComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	SetIsReplicatedByDefault(true);
 }

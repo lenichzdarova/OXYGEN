@@ -2,6 +2,7 @@
 
 #include "LyraInventoryManagerComponent.h"
 
+#include "InventoryGameplayTags.h"
 #include "Engine/World.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "InventoryItemRegistry.h"
@@ -49,14 +50,14 @@ int32 ULyraInventoryManagerComponent::FindItemIndex(FGuid ItemId) const
 	return ItemId.IsValid() ? Items.IndexOfByKey(ItemId) : INDEX_NONE;
 }
 
-void ULyraInventoryManagerComponent::NotifyItemChanged(FGuid ItemId)
+void ULyraInventoryManagerComponent::NotifyItemChanged(FGuid ItemId, FGameplayTag Channel)
 {
 	FLyraInventoryChangeMessage Message;
 	Message.InventoryOwner = this;
 	Message.ItemId = ItemId;
 
 	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
-	MessageSystem.BroadcastMessage(TAG_Lyra_Inventory_Message_StackChanged, Message);
+	MessageSystem.BroadcastMessage(Channel, Message);
 }
 
 bool ULyraInventoryManagerComponent::CanAddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef) const
@@ -126,7 +127,7 @@ bool ULyraInventoryManagerComponent::AddItem(FGuid ItemId, FItemPlacementRequest
 	}
 
 	Items.Add(ItemId);
-	NotifyItemChanged(ItemId);
+	NotifyItemChanged(ItemId, InventoryGameplayTags::Inventory_Message_ItemAdded);
 	return true;
 }
 
@@ -144,7 +145,7 @@ bool ULyraInventoryManagerComponent::RemoveItem(FGuid ItemId)
 	}
 
 	Items.RemoveAt(Index);
-	NotifyItemChanged(ItemId);
+	NotifyItemChanged(ItemId, InventoryGameplayTags::Inventory_Message_ItemRemoved);
 	return true;
 }
 
@@ -279,7 +280,7 @@ bool ULyraInventoryManagerComponent::ConsumeItemsByDefinition(TSubclassOf<ULyraI
 
 void ULyraInventoryManagerComponent::OnRep_Items()
 {
-	NotifyItemChanged(FGuid());
+	//NotifyItemChanged(FGuid());
 }
 
 //////////////////////////////////////////////////////////////////////

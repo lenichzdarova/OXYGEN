@@ -78,8 +78,8 @@ namespace LyraGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(UI_Layer_MainMenu, "UI.Layer.MainMenu", "Main menu layer for UI elements");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(UI_Layer_Modal, "UI.Layer.Modal", "Modal layer for UI elements");
 	
-	//Inventory tags
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Inventory_Placement_Message_GridChanged, "Inventory.Placement.Message.GridChanged", "Message for grid changed events");
+	
+	
 	
 
 	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString)

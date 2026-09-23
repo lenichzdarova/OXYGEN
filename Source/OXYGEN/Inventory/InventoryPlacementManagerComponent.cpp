@@ -1,5 +1,6 @@
 #include "InventoryPlacementManagerComponent.h"
 
+#include "InventoryGameplayTags.h"
 #include "Engine/World.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "LyraGameplayTags.h"
@@ -105,5 +106,5 @@ void UInventoryPlacementManagerComponent::NotifyChanged(FGuid ItemId)
 	Message.ItemId = ItemId;
 
 	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
-	MessageSystem.BroadcastMessage(LyraGameplayTags::Inventory_Placement_Message_GridChanged, Message);
+	MessageSystem.BroadcastMessage(InventoryGameplayTags::Inventory_Placement_Message_GridChanged, Message);
 }

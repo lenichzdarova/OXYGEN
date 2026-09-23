@@ -77,7 +77,8 @@ private:
 	UInventoryItemRegistry* GetRegistry() const;
 	bool HasAuthority() const;
 	int32 FindItemIndex(FGuid ItemId) const;
-	void NotifyItemChanged(FGuid ItemId);
+	
+	void NotifyItemChanged(FGuid ItemId, FGameplayTag Channel);
 
 	UPROPERTY(ReplicatedUsing = OnRep_Items)
 	TArray<FGuid> Items;
