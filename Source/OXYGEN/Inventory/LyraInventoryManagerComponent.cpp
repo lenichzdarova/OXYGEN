@@ -127,6 +127,7 @@ bool ULyraInventoryManagerComponent::AddItem(FGuid ItemId, FItemPlacementRequest
 	}
 
 	Items.Add(ItemId);
+	PlacementManager->AddItem(ItemId, PlacementRequest);
 	NotifyItemChanged(ItemId, InventoryGameplayTags::Inventory_Message_ItemAdded);
 	return true;
 }
