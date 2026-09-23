@@ -1,158 +1,90 @@
-#include "UniformGridInventoryPlacementComponent.h"
+// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "InventoryItemRegistry.h"
+
+#include "UniformGridInventoryPlacementComponent.h"
 #include "LyraGameplayTags.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
+#include "Iris/ReplicationState/ReplicationStateUtil.h"
 #include "Net/UnrealNetwork.h"
 
 UUniformGridInventoryPlacementComponent::UUniformGridInventoryPlacementComponent()
 {
-	SetIsReplicatedByDefault(true);
+	SetIsReplicatedByDefault(true);	
 }
 
 void UUniformGridInventoryPlacementComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (Slots.Num() != MaxSlots)
-	{
-		Slots.SetNum(MaxSlots);
-	}
+	Slots.Init(nullptr, MaxSlots);
 }
 
-void UUniformGridInventoryPlacementComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+bool UUniformGridInventoryPlacementComponent::CanPlaceItem(TSubclassOf<ULyraInventoryItemDefinition> ItemDef,
+                                                           FItemPlacementRequest Request)
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME_CONDITION(ThisClass, Slots, COND_OwnerOnly);
-}
-
-bool UUniformGridInventoryPlacementComponent::CanPlaceItem(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, FItemPlacementRequest Request) const
-{
-	if (ItemDef == nullptr || Slots.Num() == 0)
-	{
-		return false;
-	}
-
+	bool Result = false;
 	if (Request.Position != INDEX_NONE)
 	{
-		return Slots.IsValidIndex(Request.Position) && !Slots[Request.Position].IsValid();
+		Result = Slots[Request.Position] == nullptr;
 	}
-
-	return FindFirstEmptyPosition() != INDEX_NONE;
+	else
+	{
+		Request.Position = FindFirstEmptyPosition();
+		Result = Request.Position != INDEX_NONE;
+	}	
+	return Result; 
 }
 
-bool UUniformGridInventoryPlacementComponent::AddItem(FGuid ItemId, FItemPlacementRequest Request)
+
+
+void UUniformGridInventoryPlacementComponent::Server_AddItem_Implementation(ULyraInventoryItemInstance* ItemInstance,
+                                                      FItemPlacementRequest Request)
 {
-	if (!HasAuthority() || !ItemId.IsValid())
-	{
-		return false;
-	}
-
-	UInventoryItemRegistry* Registry = GetRegistry();
-	FItemView View;
-	if (!Registry || !Registry->GetView(ItemId, View))
-	{
-		return false;
-	}
-
-	if (!CanPlaceItem(View.Def, Request))
-	{
-		return false;
-	}
-
-	if (FindItemIndex(ItemId) != INDEX_NONE)
-	{
-		return false;
-	}
-
-	const int32 Index = (Request.Position == INDEX_NONE) ? FindFirstEmptyPosition() : Request.Position;
-	if (!Slots.IsValidIndex(Index) || Slots[Index].IsValid())
-	{
-		return false;
-	}
-
-	Slots[Index] = View;
+	int Index = Request.Position == INDEX_NONE? FindFirstEmptyPosition() : Request.Position;
+	Slots[Index] = ItemInstance;	
 	NotifySlotsChanged();
-	return true;
 }
 
-bool UUniformGridInventoryPlacementComponent::RemoveItem(FGuid ItemId)
+void UUniformGridInventoryPlacementComponent::Server_RemoveItem_Implementation(ULyraInventoryItemInstance* ItemInstance)
 {
-	if (!HasAuthority() || !ItemId.IsValid())
+	auto Index = Slots.Find(ItemInstance);
+	if (Index != INDEX_NONE)
 	{
-		return false;
+		Slots[Index] = nullptr;
 	}
-
-	const int32 Index = FindItemIndex(ItemId);
-	if (Index == INDEX_NONE)
-	{
-		return false;
-	}
-
-	Slots[Index].Reset();
 	NotifySlotsChanged();
-	return true;
 }
 
-bool UUniformGridInventoryPlacementComponent::MoveItemToSlot(FGuid ItemId, FItemPlacementRequest Request)
+void UUniformGridInventoryPlacementComponent::Server_MoveItemToSlot_Implementation(ULyraInventoryItemInstance* ItemInstance,
+	FItemPlacementRequest Request)
 {
-	if (!HasAuthority() || !ItemId.IsValid() || !Slots.IsValidIndex(Request.Position))
-	{
-		return false;
-	}
-
-	const int32 StartIndex = FindItemIndex(ItemId);
-	if (StartIndex == INDEX_NONE)
-	{
-		return false;
-	}
-
-	const FItemView Moving = Slots[StartIndex];
-	Slots[StartIndex] = Slots[Request.Position];
-	Slots[Request.Position] = Moving;
+	auto StartSlot = Slots.Find(ItemInstance);	
+	ULyraInventoryItemInstance* TargetSlotPreviousItem = Slots[Request.Position];
+	Slots[Request.Position] = ItemInstance;
+	Slots[StartSlot] = TargetSlotPreviousItem;		
+	
 	NotifySlotsChanged();
-	return true;
 }
 
-bool UUniformGridInventoryPlacementComponent::ContainsItem(FGuid ItemId) const
+void UUniformGridInventoryPlacementComponent::GetLifetimeReplicatedProps(
+	TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
-	return FindItemIndex(ItemId) != INDEX_NONE;
-}
-
-FItemView UUniformGridInventoryPlacementComponent::GetSlotView(int32 Index) const
-{
-	return Slots.IsValidIndex(Index) ? Slots[Index] : FItemView();
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME_CONDITION(ThisClass, Slots, COND_OwnerOnly);	
 }
 
 void UUniformGridInventoryPlacementComponent::OnRep_Slots()
 {
-	NotifySlotsChanged();
+	NotifySlotsChanged();	
 }
 
-int32 UUniformGridInventoryPlacementComponent::FindFirstEmptyPosition() const
+int UUniformGridInventoryPlacementComponent::FindFirstEmptyPosition()
 {
-	for (int32 Index = 0; Index < Slots.Num(); ++Index)
+	for (int32 i = 0; i < Slots.Num(); ++i)
 	{
-		if (!Slots[Index].IsValid())
+		if (Slots[i] == nullptr)
 		{
-			return Index;
-		}
-	}
-	return INDEX_NONE;
-}
-
-int32 UUniformGridInventoryPlacementComponent::FindItemIndex(FGuid ItemId) const
-{
-	if (!ItemId.IsValid())
-	{
-		return INDEX_NONE;
-	}
-
-	for (int32 Index = 0; Index < Slots.Num(); ++Index)
-	{
-		if (Slots[Index].ItemId == ItemId)
-		{
-			return Index;
+			return i;
 		}
 	}
 	return INDEX_NONE;
@@ -163,10 +95,8 @@ void UUniformGridInventoryPlacementComponent::NotifySlotsChanged()
 	FPlacementManagerChangeMessage Message;
 	Message.SenderComponent = this;
 	Message.Slots = Slots;
-
-	if (UWorld* World = GetWorld())
-	{
-		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(World);
-		MessageSystem.BroadcastMessage(LyraGameplayTags::Inventory_Placement_Message_GridChanged, Message);
-	}
+    
+	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+	MessageSystem.BroadcastMessage(LyraGameplayTags::Inventory_Placement_Message_GridChanged, Message);
 }
+
