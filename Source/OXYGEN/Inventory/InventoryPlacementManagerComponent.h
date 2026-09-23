@@ -1,23 +1,46 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
 #pragma once
 
-#include "InventoryTypes.h"
+#include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-
 #include "InventoryPlacementManagerComponent.generated.h"
 
 class ULyraInventoryItemDefinition;
-class UInventoryItemRegistry;
+class ULyraInventoryItemInstance;
+class UInventoryPlacementManagerComponent;
+
 
 USTRUCT(BlueprintType)
 struct FPlacementManagerChangeMessage
 {
 	GENERATED_BODY()
-
+	
 	UPROPERTY(BlueprintReadOnly, Category = Inventory)
-	TObjectPtr<UInventoryPlacementManagerComponent> SenderComponent = nullptr;
-
+	TObjectPtr<UInventoryPlacementManagerComponent> SenderComponent = nullptr;	
+	
 	UPROPERTY(BlueprintReadOnly, Category = Inventory)
-	TArray<FItemView> Slots;
+	TArray<ULyraInventoryItemInstance*> Slots;
+};
+
+
+USTRUCT(BlueprintType)
+struct FItemPlacementRequest
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<ULyraInventoryItemInstance> ItemInstance = nullptr;
+	
+	UPROPERTY(BlueprintReadWrite)
+	int32 Position = -1; // -1 = auto
+
+	UPROPERTY(BlueprintReadWrite)
+	int32 Rotation = 0;
+
+	// опционально
+	UPROPERTY(BlueprintReadWrite)
+	bool bAllowAutoAdjust = true; // можно ли сдвинуть/повернуть
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup=(Inventory), meta=(BlueprintSpawnableComponent))
@@ -25,36 +48,15 @@ class OXYGEN_API UInventoryPlacementManagerComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:
-	UInventoryPlacementManagerComponent();
-
-	UFUNCTION(BlueprintCallable, Category = Inventory)
-	virtual bool CanPlaceItem(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, FItemPlacementRequest Request) const;
-
-	UFUNCTION(BlueprintCallable, Server, Reliable, Category = Inventory)
-	void Server_AddItem(FGuid ItemId, FItemPlacementRequest Request);
-
-	UFUNCTION(BlueprintCallable, Server, Reliable, Category = Inventory)
-	void Server_RemoveItem(FGuid ItemId);
-
-	UFUNCTION(BlueprintCallable, Server, Reliable, Category = Inventory)
-	void Server_MoveItemToSlot(FGuid ItemId, FItemPlacementRequest Request);
-
-	virtual bool AddItem(FGuid ItemId, FItemPlacementRequest Request);
-	virtual bool RemoveItem(FGuid ItemId);
-	virtual bool MoveItemToSlot(FGuid ItemId, FItemPlacementRequest Request);
-
-	UFUNCTION(BlueprintCallable, Category = Inventory)
-	virtual TArray<FItemView> GetSlots() const { return TArray<FItemView>(); }
-
-	UFUNCTION(BlueprintCallable, Category = Inventory)
-	virtual bool ContainsItem(FGuid ItemId) const { return false; }
-
-protected:
-	virtual void Server_AddItem_Implementation(FGuid ItemId, FItemPlacementRequest Request);
-	virtual void Server_RemoveItem_Implementation(FGuid ItemId);
-	virtual void Server_MoveItemToSlot_Implementation(FGuid ItemId, FItemPlacementRequest Request);
-
-	bool HasAuthority() const;
-	UInventoryItemRegistry* GetRegistry() const;
+public:	
+	UFUNCTION(BlueprintCallable)
+	virtual bool CanPlaceItem(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, FItemPlacementRequest Request);
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	virtual void Server_AddItem(ULyraInventoryItemInstance* ItemInstance, FItemPlacementRequest Request);
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	virtual void Server_RemoveItem(ULyraInventoryItemInstance* ItemInstance);	
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	virtual void Server_MoveItemToSlot(ULyraInventoryItemInstance* ItemInstance, FItemPlacementRequest Request);
 };
+
+
