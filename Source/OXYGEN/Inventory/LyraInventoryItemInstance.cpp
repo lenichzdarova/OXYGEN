@@ -3,33 +3,12 @@
 #include "LyraInventoryItemInstance.h"
 
 #include "Inventory/LyraInventoryItemDefinition.h"
-#include "Net/UnrealNetwork.h"
-
-#include "Iris/ReplicationSystem/ReplicationFragmentUtil.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(LyraInventoryItemInstance)
-
-class FLifetimeProperty;
 
 ULyraInventoryItemInstance::ULyraInventoryItemInstance(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-}
-
-void ULyraInventoryItemInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(ThisClass, StatTags);
-	DOREPLIFETIME(ThisClass, ItemDef);
-}
-
-void ULyraInventoryItemInstance::RegisterReplicationFragments(UE::Net::FFragmentRegistrationContext& Context, UE::Net::EFragmentRegistrationFlags RegistrationFlags)
-{
-	using namespace UE::Net;
-
-	// Build descriptors and allocate PropertyReplicationFragments for this object
-	FReplicationFragmentUtil::CreateAndRegisterFragmentsForObject(this, Context, RegistrationFlags);
 }
 
 void ULyraInventoryItemInstance::AddStatTagStack(FGameplayTag Tag, int32 StackCount)
@@ -57,6 +36,11 @@ void ULyraInventoryItemInstance::SetItemDef(TSubclassOf<ULyraInventoryItemDefini
 	ItemDef = InDef;
 }
 
+void ULyraInventoryItemInstance::SetItemId(FGuid InId)
+{
+	ItemId = InId;
+}
+
 const ULyraInventoryItemFragment* ULyraInventoryItemInstance::FindFragmentByClass(TSubclassOf<ULyraInventoryItemFragment> FragmentClass) const
 {
 	if ((ItemDef != nullptr) && (FragmentClass != nullptr))
@@ -66,5 +50,3 @@ const ULyraInventoryItemFragment* ULyraInventoryItemInstance::FindFragmentByClas
 
 	return nullptr;
 }
-
-
