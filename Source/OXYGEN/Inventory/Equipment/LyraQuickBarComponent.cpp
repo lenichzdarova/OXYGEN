@@ -234,7 +234,7 @@ void ULyraQuickBarComponent::EquipItemInSlot()
 	EquippedItem = EquipmentManager->EquipItem(EquipInfo->EquipmentDefinition);
 	if (EquippedItem)
 	{
-		EquippedItem->SetInstigator(Instance);
+		EquippedItem->SetItemID(ItemId);
 	}
 }
 

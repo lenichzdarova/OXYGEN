@@ -30,9 +30,9 @@ public:
 	//~End of UObject interface
 
 	UFUNCTION(BlueprintPure, Category=Equipment)
-	UObject* GetInstigator() const { return Instigator; }
+	FGuid GetItemID() const { return ItemID; }
 
-	void SetInstigator(UObject* InInstigator) { Instigator = InInstigator; }
+	void SetItemID(FGuid InItemID) { ItemID = InItemID; }
 
 	UFUNCTION(BlueprintPure, Category=Equipment)
 	APawn* GetPawn() const;
@@ -61,11 +61,11 @@ protected:
 
 private:
 	UFUNCTION()
-	void OnRep_Instigator();
+	void OnRep_ItemID();
 
 private:
-	UPROPERTY(ReplicatedUsing=OnRep_Instigator)
-	TObjectPtr<UObject> Instigator;
+	UPROPERTY(ReplicatedUsing=OnRep_ItemID)
+	FGuid ItemID;
 
 	UPROPERTY(Replicated)
 	TArray<TObjectPtr<AActor>> SpawnedActors;

@@ -36,7 +36,7 @@ void ULyraEquipmentInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ThisClass, Instigator);
+	DOREPLIFETIME(ThisClass, ItemID);
 	DOREPLIFETIME(ThisClass, SpawnedActors);
 }
 
@@ -109,7 +109,7 @@ void ULyraEquipmentInstance::OnUnequipped()
 	K2_OnUnequipped();
 }
 
-void ULyraEquipmentInstance::OnRep_Instigator()
+void ULyraEquipmentInstance::OnRep_ItemID()
 {
 }
 

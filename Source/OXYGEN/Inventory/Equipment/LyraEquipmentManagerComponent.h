@@ -100,14 +100,6 @@ struct TStructOpsTypeTraits<FLyraEquipmentList> : public TStructOpsTypeTraitsBas
 };
 
 
-
-
-
-
-
-
-
-
 /**
  * Manages equipment applied to a pawn
  */
