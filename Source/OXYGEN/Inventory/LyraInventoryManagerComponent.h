@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "InventoryItemContainer.h"
 #include "InventoryPlacementManagerComponent.h"
 #include "Components/ActorComponent.h"
 
@@ -23,7 +24,7 @@ struct FLyraInventoryChangeMessage
 };
 
 UCLASS(BlueprintType, meta = (BlueprintSpawnableComponent))
-class OXYGEN_API ULyraInventoryManagerComponent : public UActorComponent
+class OXYGEN_API ULyraInventoryManagerComponent : public UActorComponent, public IInventoryItemContainer
 {
 	GENERATED_BODY()
 
@@ -85,4 +86,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UInventoryPlacementManagerComponent> PlacementManager = nullptr;
+	
+	//containerInterface
+	virtual void Extract_Implementation(FGuid ItemId) override;
+	
+public:
 };

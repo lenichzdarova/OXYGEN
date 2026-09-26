@@ -24,7 +24,7 @@ struct FItemData
 
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTagStackContainer StatTags;
-
+	
 	bool IsValid() const
 	{
 		return ItemId.IsValid() && Def != nullptr;

@@ -1,57 +1,16 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
-#include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
-#include "LyraAbilitySet.h"
-#include "LyraInventoryItemInstance.h"
-#include "Components/ActorComponent.h"
+#include "InventoryItemContainer.h"
 #include "Components/PawnComponent.h"
-#include "Equipment/LyraEquipmentInstance.h"
-#include "Net/Serialization/FastArraySerializer.h"
+#include "InventoryItemRegistry.h"
+#include "LoadoutLayout.h"
 #include "LoadoutManagerComponent.generated.h"
 
+class ULyraEquipmentInstance;
+class ULyraEquipmentManagerComponent;
 class ULoadoutManagerComponent;
-
-USTRUCT(BlueprintType)
-struct FLoadoutEntry : public FFastArraySerializerItem
-{
-	GENERATED_BODY()
-
-	UPROPERTY()
-	FGameplayTag SlotTag;
-
-	UPROPERTY()
-	TObjectPtr<ULyraInventoryItemInstance> ItemInstance = nullptr;
-
-	UPROPERTY()
-	TObjectPtr<ULyraEquipmentInstance> EquipmentInstance = nullptr;
-};
-
-USTRUCT(BlueprintType)
-struct FLoadoutEntryList : public FFastArraySerializer
-{
-	GENERATED_BODY()
-
-	UPROPERTY()
-	TArray<FLoadoutEntry> Entries;
-	
-	void AddEntry(ULyraInventoryItemInstance* Instance);
-	void RemoveEntry(ULyraInventoryItemInstance* Instance);
-
-	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms)
-	{
-		return FFastArraySerializer::FastArrayDeltaSerialize<FLoadoutEntry, FLoadoutEntryList>(
-			Entries, DeltaParms, *this);
-	}
-};
-
-template<>
-struct TStructOpsTypeTraits<FLoadoutEntryList> : public TStructOpsTypeTraitsBase2<FLoadoutEntryList>
-{
-	enum { WithNetDeltaSerializer = true };
-};
+class UInventoryFragment_LoadoutItem;
+class ULyraInventoryItemDefinition;
 
 USTRUCT(BlueprintType)
 struct FLoadoutChangedMessage
@@ -60,17 +19,83 @@ struct FLoadoutChangedMessage
 
 	UPROPERTY(BlueprintReadOnly, Category = "Loadout")
 	TObjectPtr<ULoadoutManagerComponent> Component = nullptr;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Loadout")
-	TArray<FLoadoutEntry> Entries;
 };
 
-UCLASS(BlueprintType, meta = (BlueprintSpawnableComponent))
-class ULoadoutManagerComponent : public UPawnComponent
+USTRUCT(BlueprintType)
+struct FLoadoutSlot
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag SlotId;
+
+	UPROPERTY(BlueprintReadOnly)
+	FItemData Item;
+};
+
+UCLASS(Blueprintable, meta = (BlueprintSpawnableComponent))
+class OXYGEN_API ULoadoutManagerComponent : public UPawnComponent, public IInventoryItemContainer
 {
 	GENERATED_BODY()
 
 public:
 	ULoadoutManagerComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION(BlueprintCallable, Category = "Loadout")
+	bool CanEquip(FGuid ItemId, FGameplayTag SlotId) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Loadout")
+	bool CanEquipDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, FGameplayTag SlotId) const;
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Loadout")
+	bool EquipItem(FGuid ItemId, FGameplayTag SlotId);
+
+	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Loadout")
+	void Server_EquipItem(FGuid ItemId, FGameplayTag SlotId);
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Loadout")
+	FGuid UnequipItem(FGameplayTag SlotId);
+
+	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Loadout")
+	void Server_UnequipItem(FGameplayTag SlotId);
+
+	UFUNCTION(BlueprintCallable, Category = "Loadout")
+	const TArray<FLoadoutSlot>& GetSlots() const { return Slots; }
+
+	UFUNCTION(BlueprintCallable, Category = "Loadout")
+	FLoadoutSlotDef GetSlotDef(FGameplayTag SlotId) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Loadout")
+	ULyraEquipmentInstance* GetEquipment(FGameplayTag SlotId) const;
+
+protected:
+	UFUNCTION()
+	void OnRep_Slots();
+
+private:
+	const UInventoryFragment_LoadoutItem* FindFragment(TSubclassOf<ULyraInventoryItemDefinition> ItemDef) const;
+	bool MatchesSlot(const UInventoryFragment_LoadoutItem& Fragment, FGameplayTag SlotId) const;
+	ULyraEquipmentManagerComponent* FindEquipmentManager() const;
+	UInventoryItemRegistry* GetRegistry() const;
+	//bool HasAuthority() const;
+	void ApplyEquipment(FGameplayTag SlotId, FGuid ItemId, const UInventoryFragment_LoadoutItem& Fragment);
+	void RemoveEquipment(FGameplayTag SlotId);
+	int GetSlotIndexByID(FGameplayTag SlotId) const;
+	void NotifyChanged();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Loadout")
+	TObjectPtr<ULoadoutLayout> Layout;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Slots)
+	TArray<FLoadoutSlot> Slots;
+
+	UPROPERTY()
+	TArray<TObjectPtr<ULyraEquipmentInstance>> Equipment;
+	
+	//IInventoryContainer interface
+public:
+	virtual void Extract_Implementation(FGuid ItemId) override;
 };

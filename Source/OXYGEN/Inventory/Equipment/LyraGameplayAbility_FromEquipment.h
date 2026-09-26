@@ -27,7 +27,7 @@ public:
 	ULyraEquipmentInstance* GetAssociatedEquipment() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Lyra|Ability")
-	ULyraInventoryItemInstance* GetAssociatedItem() const;
+	FGuid GetAssociatedItemId() const;
 
 #if WITH_EDITOR
 	virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) const override;

@@ -20,13 +20,21 @@ bool ULyraAbilityCost_ItemTagStack::CheckCost(const ULyraGameplayAbility* Abilit
 {
 	if (const ULyraGameplayAbility_FromEquipment* EquipmentAbility = Cast<const ULyraGameplayAbility_FromEquipment>(Ability))
 	{
-		if (ULyraInventoryItemInstance* ItemInstance = EquipmentAbility->GetAssociatedItem())
+		if (EquipmentAbility->GetAssociatedItemId().IsValid())
 		{
 			const int32 AbilityLevel = Ability->GetAbilityLevel(Handle, ActorInfo);
 
 			const float NumStacksReal = Quantity.GetValueAtLevel(AbilityLevel);
 			const int32 NumStacks = FMath::TruncToInt(NumStacksReal);
-			const bool bCanApplyCost = ItemInstance->GetStatTagStackCount(Tag) >= NumStacks;
+			
+			bool bCanApplyCost = true;
+			
+			if (UInventoryItemRegistry* ItemRegistry = GetItemRegistry())
+			{
+				ULyraInventoryItemInstance* ItemInstance = ItemRegistry->GetItem(EquipmentAbility->GetAssociatedItemId());
+				bCanApplyCost = ItemInstance->GetStatTagStackCount(Tag) >= NumStacks;
+			}	
+			
 
 			// Inform other abilities why this cost cannot be applied
 			if (!bCanApplyCost && OptionalRelevantTags && FailureTag.IsValid())
@@ -45,16 +53,31 @@ void ULyraAbilityCost_ItemTagStack::ApplyCost(const ULyraGameplayAbility* Abilit
 	{
 		if (const ULyraGameplayAbility_FromEquipment* EquipmentAbility = Cast<const ULyraGameplayAbility_FromEquipment>(Ability))
 		{
-			if (ULyraInventoryItemInstance* ItemInstance = EquipmentAbility->GetAssociatedItem())
+			if (EquipmentAbility->GetAssociatedItemId().IsValid())
 			{
 				const int32 AbilityLevel = Ability->GetAbilityLevel(Handle, ActorInfo);
 
 				const float NumStacksReal = Quantity.GetValueAtLevel(AbilityLevel);
 				const int32 NumStacks = FMath::TruncToInt(NumStacksReal);
-
-				ItemInstance->RemoveStatTagStack(Tag, NumStacks);
+				
+				UInventoryItemRegistry* ItemRegistry = GetItemRegistry();
+				if (ItemRegistry)
+				{
+					ULyraInventoryItemInstance* ItemInstance = ItemRegistry->GetItem(EquipmentAbility->GetAssociatedItemId());
+					if (ItemInstance)
+					{
+						ItemInstance->RemoveStatTagStack(Tag, NumStacks);
+					}
+				}
 			}
 		}
 	}
+}
+
+UInventoryItemRegistry* ULyraAbilityCost_ItemTagStack::GetItemRegistry() const
+{
+	const UWorld* World = GetWorld();
+	const UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
+	return GameInstance ? GameInstance->GetSubsystem<UInventoryItemRegistry>() : nullptr;
 }
 

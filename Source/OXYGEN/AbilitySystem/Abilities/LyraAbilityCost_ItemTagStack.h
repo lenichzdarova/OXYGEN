@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GameplayTagContainer.h"
+#include "InventoryItemRegistry.h"
 #include "LyraAbilityCost.h"
 #include "ScalableFloat.h"
 
@@ -44,4 +45,7 @@ protected:
 	/** Which tag to send back as a response if this cost cannot be applied */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Costs)
 	FGameplayTag FailureTag;
+	
+private:
+	UInventoryItemRegistry* GetItemRegistry() const;
 };

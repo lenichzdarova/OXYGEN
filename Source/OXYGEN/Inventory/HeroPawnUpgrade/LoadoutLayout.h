@@ -4,14 +4,6 @@
 #include "GameplayTagContainer.h"
 #include "LoadoutLayout.generated.h"
 
-UENUM(BlueprintType)
-enum class ELoadoutSlotPolicy : uint8
-{
-	ExactType,
-	UniqueType,
-	AllowDuplicate
-};
-
 USTRUCT(BlueprintType)
 struct FLoadoutSlotDef
 {
@@ -22,12 +14,6 @@ struct FLoadoutSlotDef
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loadout")
 	FGameplayTagContainer AcceptedSets;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loadout", meta = (EditCondition = "Policy == ELoadoutSlotPolicy::ExactType"))
-	FGameplayTag ExactType;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loadout")
-	ELoadoutSlotPolicy Policy = ELoadoutSlotPolicy::ExactType;
 };
 
 UCLASS(BlueprintType)

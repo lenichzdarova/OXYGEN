@@ -12,10 +12,10 @@ class OXYGEN_API UInventoryFragment_LoadoutItem : public ULyraInventoryItemFragm
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loadout")
-	FGameplayTag LoadoutSet;
-
+	FGameplayTagContainer LoadoutTags;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loadout")
-	FGameplayTag ItemType;
+	bool IsUnique = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loadout")
 	TSubclassOf<ULyraEquipmentDefinition> EquipmentDefinition;

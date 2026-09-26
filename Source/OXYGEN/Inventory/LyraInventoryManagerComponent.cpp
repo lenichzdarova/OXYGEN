@@ -60,6 +60,11 @@ void ULyraInventoryManagerComponent::NotifyItemChanged(FGuid ItemId, FGameplayTa
 	MessageSystem.BroadcastMessage(Channel, Message);
 }
 
+void ULyraInventoryManagerComponent::Extract_Implementation(FGuid ItemId)
+{
+	RemoveItem(ItemId);
+}
+
 bool ULyraInventoryManagerComponent::CanAddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef) const
 {
 	if (ItemDef == nullptr)
@@ -129,6 +134,7 @@ bool ULyraInventoryManagerComponent::AddItem(FGuid ItemId, FItemPlacementRequest
 	Items.Add(ItemId);
 	PlacementManager->AddItem(ItemId, PlacementRequest);
 	NotifyItemChanged(ItemId, InventoryGameplayTags::Inventory_Message_ItemAdded);
+	NotifyItemTaken(ItemId);
 	return true;
 }
 

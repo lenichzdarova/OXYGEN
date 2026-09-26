@@ -1,8 +1,6 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "LyraGameplayAbility_FromEquipment.h"
+
 #include "LyraEquipmentInstance.h"
-#include "Inventory/LyraInventoryItemInstance.h"
 
 #if WITH_EDITOR
 #include "Misc/DataValidation.h"
@@ -21,28 +19,26 @@ ULyraEquipmentInstance* ULyraGameplayAbility_FromEquipment::GetAssociatedEquipme
 	{
 		return Cast<ULyraEquipmentInstance>(Spec->SourceObject.Get());
 	}
-
 	return nullptr;
 }
 
-ULyraInventoryItemInstance* ULyraGameplayAbility_FromEquipment::GetAssociatedItem() const
+FGuid ULyraGameplayAbility_FromEquipment::GetAssociatedItemId() const
 {
-	if (ULyraEquipmentInstance* Equipment = GetAssociatedEquipment())
+	if (const ULyraEquipmentInstance* Equipment = GetAssociatedEquipment())
 	{
-		return Cast<ULyraInventoryItemInstance>(Equipment->GetInstigator());
+		return Equipment->GetItemID();
 	}
-	return nullptr;
+	return FGuid();
 }
-
 
 #if WITH_EDITOR
 EDataValidationResult ULyraGameplayAbility_FromEquipment::IsDataValid(FDataValidationContext& Context) const
 {
 	EDataValidationResult Result = Super::IsDataValid(Context);
 
-PRAGMA_DISABLE_DEPRECATION_WARNINGS
-	if (InstancingPolicy == EGameplayAbilityInstancingPolicy::NonInstanced)
-PRAGMA_ENABLE_DEPRECATION_WARNINGS
+	PRAGMA_DISABLE_DEPRECATION_WARNINGS
+		if (InstancingPolicy == EGameplayAbilityInstancingPolicy::NonInstanced)
+			PRAGMA_ENABLE_DEPRECATION_WARNINGS
 	{
 		Context.AddError(NSLOCTEXT("Lyra", "EquipmentAbilityMustBeInstanced", "Equipment ability must be instanced"));
 		Result = EDataValidationResult::Invalid;
@@ -50,5 +46,4 @@ PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
 	return Result;
 }
-
 #endif
