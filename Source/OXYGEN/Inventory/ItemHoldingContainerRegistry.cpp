@@ -12,8 +12,12 @@ bool UItemHoldingContainerRegistry::ShouldCreateSubsystem(UObject* Outer) const
 
 void UItemHoldingContainerRegistry::Initialize(FSubsystemCollectionBase& Collection)
 {
-	Super::Initialize(Collection);
+	Super::Initialize(Collection);	
+}
 
+void UItemHoldingContainerRegistry::OnWorldBeginPlay(UWorld& InWorld)
+{
+	Super::OnWorldBeginPlay(InWorld);
 	ListenerHandle = UGameplayMessageSubsystem::Get(this).RegisterListener<FItemTakenMessage>(
 		InventoryGameplayTags::Inventory_Message_ItemTaken_ByContainer,
 		this,
@@ -21,10 +25,15 @@ void UItemHoldingContainerRegistry::Initialize(FSubsystemCollectionBase& Collect
 }
 
 void UItemHoldingContainerRegistry::Deinitialize()
-{
+{	
 	if (ListenerHandle.IsValid())
 	{
-		UGameplayMessageSubsystem::Get(this).UnregisterListener(ListenerHandle);
+		
+		if (UGameplayMessageSubsystem::HasInstance(this))
+		{
+			UGameplayMessageSubsystem& GameplayMessageSubsystem = UGameplayMessageSubsystem::Get(this);
+			GameplayMessageSubsystem.UnregisterListener(ListenerHandle);
+		}
 		ListenerHandle = FGameplayMessageListenerHandle();
 	}
 
@@ -42,7 +51,7 @@ TScriptInterface<IInventoryItemContainer> UItemHoldingContainerRegistry::FindCon
 }
 
 void UItemHoldingContainerRegistry::OnItemTaken(FGameplayTag Channel, const FItemTakenMessage& Message)
-{
+{	
 	if (!Message.ItemId.IsValid() || !Message.Container.GetObject())
 	{
 		return;

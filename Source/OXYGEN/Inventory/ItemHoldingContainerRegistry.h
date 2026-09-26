@@ -19,7 +19,9 @@ class OXYGEN_API UItemHoldingContainerRegistry : public UWorldSubsystem
 public:
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
+	
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	TScriptInterface<IInventoryItemContainer> FindContainer(FGuid ItemId) const;
