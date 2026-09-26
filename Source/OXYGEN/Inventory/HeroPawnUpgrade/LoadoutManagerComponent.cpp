@@ -265,8 +265,7 @@ void ULoadoutManagerComponent::OnRep_Slots()
 }
 
 void ULoadoutManagerComponent::NotifyChanged()
-{
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Loadout changed"));
+{	
 	FLoadoutChangedMessage Message;
 	Message.Component = this;
 	UGameplayMessageSubsystem::Get(this).BroadcastMessage(	InventoryGameplayTags::Inventory_Loadout_Message_Changed,	Message);

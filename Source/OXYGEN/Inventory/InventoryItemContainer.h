@@ -27,6 +27,7 @@ public:
 	void Extract(FGuid ItemId);
 
 	void NotifyItemTaken(FGuid ItemId);	
+	
 };
 
 USTRUCT(BlueprintType)

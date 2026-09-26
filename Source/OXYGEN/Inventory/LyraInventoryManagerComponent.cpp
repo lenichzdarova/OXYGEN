@@ -61,7 +61,7 @@ void ULyraInventoryManagerComponent::NotifyItemChanged(FGuid ItemId, FGameplayTa
 }
 
 void ULyraInventoryManagerComponent::Extract_Implementation(FGuid ItemId)
-{
+{	
 	RemoveItem(ItemId);
 }
 
@@ -149,9 +149,12 @@ bool ULyraInventoryManagerComponent::RemoveItem(FGuid ItemId)
 	if (Index == INDEX_NONE)
 	{
 		return false;
-	}
-
+	}	
 	Items.RemoveAt(Index);
+	if (PlacementManager)
+	{
+		PlacementManager->RemoveItem(ItemId);
+	}
 	NotifyItemChanged(ItemId, InventoryGameplayTags::Inventory_Message_ItemRemoved);
 	return true;
 }
