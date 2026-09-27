@@ -23,20 +23,17 @@ public:
 	virtual bool CanPlaceItem(FGuid ItemId, FItemPlacementRequest Request) override;
 	virtual bool CanPlaceDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, FItemPlacementRequest Request) override;
 
+	virtual bool HasItem(FGuid ItemId) const override;
+	virtual TArray<FGuid> GetPlacedItems() const override;
+
+	virtual const TArray<FItemData>& GetSlots() const override { return Slots; }
+	virtual FItemData GetSlotData(int32 Index) const override;
+
+protected:
 	virtual bool AddItem(FGuid ItemId, FItemPlacementRequest Request) override;
 	virtual bool RemoveItem(FGuid ItemId) override;
 	virtual bool MoveItem(FGuid ItemId, FItemPlacementRequest Request) override;
 
-	virtual bool HasItem(FGuid ItemId) const override;
-	virtual TArray<FGuid> GetPlacedItems() const override;
-
-	UFUNCTION(BlueprintCallable, Category = "Inventory|Placement")
-	const TArray<FItemData>& GetSlots() const { return Slots; }
-
-	UFUNCTION(BlueprintCallable, Category = "Inventory|Placement")
-	FItemData GetSlotData(int32 Index) const;
-
-protected:
 	UFUNCTION()
 	void OnRep_Slots();
 

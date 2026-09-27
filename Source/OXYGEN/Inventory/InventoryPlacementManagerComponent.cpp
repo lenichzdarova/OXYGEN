@@ -41,21 +41,6 @@ bool UInventoryPlacementManagerComponent::MoveItem(FGuid ItemId, FItemPlacementR
 	return false;
 }
 
-void UInventoryPlacementManagerComponent::Server_AddItem_Implementation(FGuid ItemId, FItemPlacementRequest Request)
-{
-	AddItem(ItemId, Request);
-}
-
-void UInventoryPlacementManagerComponent::Server_RemoveItem_Implementation(FGuid ItemId)
-{
-	RemoveItem(ItemId);
-}
-
-void UInventoryPlacementManagerComponent::Server_MoveItem_Implementation(FGuid ItemId, FItemPlacementRequest Request)
-{
-	MoveItem(ItemId, Request);
-}
-
 bool UInventoryPlacementManagerComponent::HasItem(FGuid ItemId) const
 {
 	return false;
@@ -64,6 +49,17 @@ bool UInventoryPlacementManagerComponent::HasItem(FGuid ItemId) const
 TArray<FGuid> UInventoryPlacementManagerComponent::GetPlacedItems() const
 {
 	return {};
+}
+
+const TArray<FItemData>& UInventoryPlacementManagerComponent::GetSlots() const
+{
+	static const TArray<FItemData> Empty;
+	return Empty;
+}
+
+FItemData UInventoryPlacementManagerComponent::GetSlotData(int32 Index) const
+{
+	return FItemData();
 }
 
 UInventoryItemRegistry* UInventoryPlacementManagerComponent::GetRegistry() const
@@ -79,7 +75,6 @@ FItemData UInventoryPlacementManagerComponent::GetItemData(FGuid ItemId) const
 	{
 		return Registry->MakeData(ItemId);
 	}
-
 	return FItemData();
 }
 
@@ -89,7 +84,6 @@ TSubclassOf<ULyraInventoryItemDefinition> UInventoryPlacementManagerComponent::G
 	{
 		return Registry->GetItemDef(ItemId);
 	}
-
 	return nullptr;
 }
 
@@ -104,7 +98,7 @@ void UInventoryPlacementManagerComponent::NotifyChanged(FGuid ItemId)
 	FPlacementManagerChangeMessage Message;
 	Message.SenderComponent = this;
 	Message.ItemId = ItemId;
-
-	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
-	MessageSystem.BroadcastMessage(InventoryGameplayTags::Inventory_Placement_Message_GridChanged, Message);
+	UGameplayMessageSubsystem::Get(this).BroadcastMessage(
+		InventoryGameplayTags::Inventory_Placement_Message_GridChanged,
+		Message);
 }

@@ -23,7 +23,11 @@ ULyraInventoryManagerComponent::ULyraInventoryManagerComponent(const FObjectInit
 void ULyraInventoryManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	PlacementManager = GetOwner()->FindComponentByClass<UInventoryPlacementManagerComponent>();
+
+	if (GetOwner())
+	{
+		PlacementManager = GetOwner()->FindComponentByClass<UInventoryPlacementManagerComponent>();
+	}
 }
 
 void ULyraInventoryManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -56,12 +60,11 @@ void ULyraInventoryManagerComponent::NotifyItemChanged(FGuid ItemId, FGameplayTa
 	Message.InventoryOwner = this;
 	Message.ItemId = ItemId;
 
-	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
-	MessageSystem.BroadcastMessage(Channel, Message);
+	UGameplayMessageSubsystem::Get(this).BroadcastMessage(Channel, Message);
 }
 
 void ULyraInventoryManagerComponent::Extract_Implementation(FGuid ItemId)
-{	
+{
 	RemoveItem(ItemId);
 }
 
@@ -78,6 +81,21 @@ bool ULyraInventoryManagerComponent::CanAddItemDefinition(TSubclassOf<ULyraInven
 	}
 
 	return true;
+}
+
+bool ULyraInventoryManagerComponent::CanPlaceItem(FGuid ItemId, FItemPlacementRequest PlacementRequest) const
+{
+	if (!ItemId.IsValid())
+	{
+		return false;
+	}
+
+	if (!PlacementManager)
+	{
+		return !HasItem(ItemId);
+	}
+
+	return PlacementManager->CanPlaceItem(ItemId, PlacementRequest);
 }
 
 void ULyraInventoryManagerComponent::Server_AddItemDefinition_Implementation(TSubclassOf<ULyraInventoryItemDefinition> ItemDef)
@@ -126,13 +144,20 @@ bool ULyraInventoryManagerComponent::AddItem(FGuid ItemId, FItemPlacementRequest
 		return false;
 	}
 
-	if (PlacementManager && !PlacementManager->CanPlaceItem(ItemId, PlacementRequest))
+	if (PlacementManager)
 	{
-		return false;
+		if (!PlacementManager->CanPlaceItem(ItemId, PlacementRequest))
+		{
+			return false;
+		}
+
+		if (!PlacementManager->AddItem(ItemId, PlacementRequest))
+		{
+			return false;
+		}
 	}
 
 	Items.Add(ItemId);
-	PlacementManager->AddItem(ItemId, PlacementRequest);
 	NotifyItemChanged(ItemId, InventoryGameplayTags::Inventory_Message_ItemAdded);
 	NotifyItemTaken(ItemId);
 	return true;
@@ -149,14 +174,41 @@ bool ULyraInventoryManagerComponent::RemoveItem(FGuid ItemId)
 	if (Index == INDEX_NONE)
 	{
 		return false;
-	}	
+	}
+
 	Items.RemoveAt(Index);
 	if (PlacementManager)
 	{
 		PlacementManager->RemoveItem(ItemId);
 	}
+
 	NotifyItemChanged(ItemId, InventoryGameplayTags::Inventory_Message_ItemRemoved);
 	return true;
+}
+
+bool ULyraInventoryManagerComponent::MoveItem(FGuid ItemId, FItemPlacementRequest PlacementRequest)
+{
+	if (!HasAuthority() || !HasItem(ItemId) || !PlacementManager)
+	{
+		return false;
+	}
+
+	return PlacementManager->MoveItem(ItemId, PlacementRequest);
+}
+
+void ULyraInventoryManagerComponent::Server_AddItem_Implementation(FGuid ItemId, FItemPlacementRequest PlacementRequest)
+{
+	AddItem(ItemId, PlacementRequest);
+}
+
+void ULyraInventoryManagerComponent::Server_RemoveItem_Implementation(FGuid ItemId)
+{
+	RemoveItem(ItemId);
+}
+
+void ULyraInventoryManagerComponent::Server_MoveItem_Implementation(FGuid ItemId, FItemPlacementRequest PlacementRequest)
+{
+	MoveItem(ItemId, PlacementRequest);
 }
 
 bool ULyraInventoryManagerComponent::DestroyItem(FGuid ItemId)
@@ -210,6 +262,17 @@ TArray<FGuid> ULyraInventoryManagerComponent::GetAllItems() const
 	return Items;
 }
 
+const TArray<FItemData>& ULyraInventoryManagerComponent::GetSlots() const
+{
+	static const TArray<FItemData> Empty;
+	return PlacementManager ? PlacementManager->GetSlots() : Empty;
+}
+
+FItemData ULyraInventoryManagerComponent::GetSlotData(int32 Index) const
+{
+	return PlacementManager ? PlacementManager->GetSlotData(Index) : FItemData();
+}
+
 FGuid ULyraInventoryManagerComponent::FindFirstItemByDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef) const
 {
 	UInventoryItemRegistry* Registry = GetRegistry();
@@ -259,6 +322,12 @@ bool ULyraInventoryManagerComponent::ConsumeItemsByDefinition(TSubclassOf<ULyraI
 	TArray<FGuid> ToDestroy;
 	ToDestroy.Reserve(NumToConsume);
 
+	UInventoryItemRegistry* Registry = GetRegistry();
+	if (!Registry)
+	{
+		return false;
+	}
+
 	for (const FGuid& ItemId : Items)
 	{
 		if (ToDestroy.Num() >= NumToConsume)
@@ -266,12 +335,9 @@ bool ULyraInventoryManagerComponent::ConsumeItemsByDefinition(TSubclassOf<ULyraI
 			break;
 		}
 
-		if (UInventoryItemRegistry* Registry = GetRegistry())
+		if (Registry->GetItemDef(ItemId) == ItemDef)
 		{
-			if (Registry->GetItemDef(ItemId) == ItemDef)
-			{
-				ToDestroy.Add(ItemId);
-			}
+			ToDestroy.Add(ItemId);
 		}
 	}
 
@@ -290,7 +356,7 @@ bool ULyraInventoryManagerComponent::ConsumeItemsByDefinition(TSubclassOf<ULyraI
 
 void ULyraInventoryManagerComponent::OnRep_Items()
 {
-	//NotifyItemChanged(FGuid());
+	
 }
 
 //////////////////////////////////////////////////////////////////////

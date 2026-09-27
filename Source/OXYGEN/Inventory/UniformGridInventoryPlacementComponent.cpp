@@ -10,7 +10,11 @@ UUniformGridInventoryPlacementComponent::UUniformGridInventoryPlacementComponent
 void UUniformGridInventoryPlacementComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	Slots.SetNum(MaxSlots);
+
+	if (HasAuthority() && Slots.Num() != MaxSlots)
+	{
+		Slots.SetNum(MaxSlots);
+	}
 }
 
 void UUniformGridInventoryPlacementComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -31,7 +35,6 @@ bool UUniformGridInventoryPlacementComponent::CanPlaceItem(FGuid ItemId, FItemPl
 		return Super::CanPlaceItem(ItemId, Request);
 	}
 
-	// На клиенте реестра нет. Для превью драга достаточно свободной клетки.
 	return CanPlaceDefinition(nullptr, Request);
 }
 

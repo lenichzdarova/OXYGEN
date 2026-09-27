@@ -37,6 +37,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	bool CanAddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef) const;
 
+	UFUNCTION(BlueprintCallable, Category = Inventory)
+	bool CanPlaceItem(FGuid ItemId, FItemPlacementRequest PlacementRequest) const;
+
 	UFUNCTION(Server, Reliable, WithValidation, BlueprintCallable, Category = Inventory)
 	void Server_AddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef);
 
@@ -50,16 +53,37 @@ public:
 	bool RemoveItem(FGuid ItemId);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
+	bool MoveItem(FGuid ItemId, FItemPlacementRequest PlacementRequest);
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
 	bool DestroyItem(FGuid ItemId);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
 	bool TransferItemTo(FGuid ItemId, ULyraInventoryManagerComponent* Destination, FItemPlacementRequest PlacementRequest);
+
+	UFUNCTION(Server, Reliable, BlueprintCallable, Category = Inventory)
+	void Server_AddItem(FGuid ItemId, FItemPlacementRequest PlacementRequest);
+
+	UFUNCTION(Server, Reliable, BlueprintCallable, Category = Inventory)
+	void Server_RemoveItem(FGuid ItemId);
+
+	UFUNCTION(Server, Reliable, BlueprintCallable, Category = Inventory)
+	void Server_MoveItem(FGuid ItemId, FItemPlacementRequest PlacementRequest);
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	bool HasItem(FGuid ItemId) const;
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	TArray<FGuid> GetAllItems() const;
+
+	UFUNCTION(BlueprintCallable, Category = Inventory)
+	const TArray<FItemData>& GetSlots() const;
+
+	UFUNCTION(BlueprintCallable, Category = Inventory)
+	FItemData GetSlotData(int32 Index) const;
+
+	UFUNCTION(BlueprintCallable, Category = Inventory)
+	UInventoryPlacementManagerComponent* GetPlacementManager() const { return PlacementManager; }
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
 	FGuid FindFirstItemByDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef) const;
@@ -70,6 +94,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
 	bool ConsumeItemsByDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 NumToConsume);
 
+	virtual void Extract_Implementation(FGuid ItemId) override;
+
 protected:
 	UFUNCTION()
 	void OnRep_Items();
@@ -78,7 +104,6 @@ private:
 	UInventoryItemRegistry* GetRegistry() const;
 	bool HasAuthority() const;
 	int32 FindItemIndex(FGuid ItemId) const;
-	
 	void NotifyItemChanged(FGuid ItemId, FGameplayTag Channel);
 
 	UPROPERTY(ReplicatedUsing = OnRep_Items)
@@ -86,9 +111,4 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UInventoryPlacementManagerComponent> PlacementManager = nullptr;
-	
-	//containerInterface
-	virtual void Extract_Implementation(FGuid ItemId) override;
-	
-public:
 };
