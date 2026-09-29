@@ -62,6 +62,16 @@ FItemData UInventoryPlacementManagerComponent::GetSlotData(int32 Index) const
 	return FItemData();
 }
 
+bool UInventoryPlacementManagerComponent::CanReplaceItem(FGuid Old, FGuid New) const
+{
+	return true;
+}
+
+int32 UInventoryPlacementManagerComponent::GetItemPosition(FGuid ItemId) const
+{
+	return INDEX_NONE;
+}
+
 UInventoryItemRegistry* UInventoryPlacementManagerComponent::GetRegistry() const
 {
 	const UWorld* World = GetWorld();

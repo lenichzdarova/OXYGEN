@@ -128,6 +128,16 @@ FItemData UUniformGridInventoryPlacementComponent::GetSlotData(int32 Index) cons
 	return IsSlotIndexValid(Index) ? Slots[Index] : FItemData();
 }
 
+bool UUniformGridInventoryPlacementComponent::CanReplaceItem(FGuid Old, FGuid New) const
+{
+	return true;
+}
+
+int32 UUniformGridInventoryPlacementComponent::GetItemPosition(FGuid ItemId) const
+{	
+	return FindSlotIndex(ItemId);
+}
+
 void UUniformGridInventoryPlacementComponent::OnRep_Slots()
 {
 	NotifyChanged(FGuid());

@@ -1,5 +1,6 @@
 #include "LoadoutManagerComponent.h"
 
+#include "ItemHoldingContainerRegistry.h"
 #include "Equipment/LyraEquipmentInstance.h"
 #include "Equipment/LyraEquipmentManagerComponent.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
@@ -180,13 +181,22 @@ bool ULoadoutManagerComponent::EquipItem(FGuid ItemId, FGameplayTag SlotId)
 
 	if (Slots[Index].Item.IsValid())
 	{
-		RemoveEquipment(SlotId);
+		if (auto World = GetWorld())
+		{
+			auto HolderRegistrySubsystem = World->GetSubsystem<UItemHoldingContainerRegistry>();
+			return HolderRegistrySubsystem->SwapItems(Slots[Index].Item.ItemId, ItemId);
+			//RemoveEquipment(SlotId);
+		}
 	}
 
 	Slots[Index].Item = Data;
 	ApplyEquipment(SlotId, ItemId, *Fragment);
 	NotifyChanged();
-	NotifyItemTaken(ItemId);
+	if (UWorld* World = GetWorld())
+	{
+		auto ItemHoldingRegistry = World->GetSubsystem<UItemHoldingContainerRegistry>();
+		ItemHoldingRegistry->Claim(ItemId, this);
+	}
 	return true;
 }
 
@@ -207,6 +217,11 @@ FGuid ULoadoutManagerComponent::UnequipItem(FGameplayTag SlotId)
 	RemoveEquipment(SlotId);
 	Slots[Index].Item = FItemData();
 	NotifyChanged();
+	if (UWorld* World = GetWorld())
+	{
+		auto ItemHoldingRegistry = World->GetSubsystem<UItemHoldingContainerRegistry>();
+		ItemHoldingRegistry->Release(RemovedId, this);
+	}
 	return RemovedId;
 }
 
@@ -279,6 +294,30 @@ void ULoadoutManagerComponent::Extract_Implementation(FGuid ItemId)
 		{
 			UnequipItem(Slot.SlotId);
 			break;
+		}
+	}
+}
+
+bool ULoadoutManagerComponent::CanInsertItem_Implementation(FGuid Old, FGuid New)
+{
+	for (auto Slot : Slots)
+	{
+		if (Slot.Item.ItemId == Old)
+		{
+			return CanEquip(New, Slot.SlotId);			
+		}
+	}	
+	return false;
+}
+
+void ULoadoutManagerComponent::InsertItem_Implementation(FGuid Old, FGuid New)
+{
+	for (auto Slot : Slots)
+	{
+		if (Slot.Item.ItemId == Old)
+		{
+			Server_UnequipItem(Slot.SlotId);
+			Server_EquipItem(New, Slot.SlotId);
 		}
 	}
 }

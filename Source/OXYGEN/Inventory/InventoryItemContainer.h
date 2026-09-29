@@ -14,9 +14,6 @@ class UInventoryItemContainer : public UInterface
 	GENERATED_BODY()
 };
 
-/**
- * 
- */
 class OXYGEN_API IInventoryItemContainer
 {
 	GENERATED_BODY()
@@ -25,19 +22,12 @@ class OXYGEN_API IInventoryItemContainer
 public:	
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, BlueprintAuthorityOnly, Category = "Inventory")
 	void Extract(FGuid ItemId);
-
-	void NotifyItemTaken(FGuid ItemId);	
+	
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, BlueprintAuthorityOnly, Category = "Inventory")
+	bool CanInsertItem(FGuid Old, FGuid New);
+	
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, BlueprintAuthorityOnly, Category = "Inventory")
+	void InsertItem(FGuid Old, FGuid New);
 	
 };
 
-USTRUCT(BlueprintType)
-struct FItemTakenMessage
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadOnly, Category = "Inventory")
-	FGuid ItemId;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Inventory")
-	TScriptInterface<IInventoryItemContainer> Container;
-};

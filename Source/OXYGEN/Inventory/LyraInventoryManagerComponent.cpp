@@ -6,6 +6,7 @@
 #include "Engine/World.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "InventoryItemRegistry.h"
+#include "ItemHoldingContainerRegistry.h"
 #include "LyraInventoryItemDefinition.h"
 #include "NativeGameplayTags.h"
 #include "Net/UnrealNetwork.h"
@@ -61,11 +62,6 @@ void ULyraInventoryManagerComponent::NotifyItemChanged(FGuid ItemId, FGameplayTa
 	Message.ItemId = ItemId;
 
 	UGameplayMessageSubsystem::Get(this).BroadcastMessage(Channel, Message);
-}
-
-void ULyraInventoryManagerComponent::Extract_Implementation(FGuid ItemId)
-{
-	RemoveItem(ItemId);
 }
 
 bool ULyraInventoryManagerComponent::CanAddItemDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef) const
@@ -134,32 +130,39 @@ FGuid ULyraInventoryManagerComponent::AddItemDefinition(TSubclassOf<ULyraInvento
 bool ULyraInventoryManagerComponent::AddItem(FGuid ItemId, FItemPlacementRequest PlacementRequest)
 {
 	if (!HasAuthority() || !ItemId.IsValid() || HasItem(ItemId))
-	{
+	{		
 		return false;
 	}
 
 	UInventoryItemRegistry* Registry = GetRegistry();
 	if (!Registry || !Registry->HasItem(ItemId))
-	{
+	{		
 		return false;
 	}
 
 	if (PlacementManager)
 	{
 		if (!PlacementManager->CanPlaceItem(ItemId, PlacementRequest))
-		{
+		{			
+			auto ItemData = PlacementManager->GetSlotData(PlacementRequest.Position);
+			if (PlacementManager->CanReplaceItem(ItemData.ItemId, ItemId))
+			{
+				auto ItemHoldingRegistry = GetWorld()->GetSubsystem<UItemHoldingContainerRegistry>();
+				return ItemHoldingRegistry->SwapItems(ItemData.ItemId, ItemId);
+			}
 			return false;
 		}
 
 		if (!PlacementManager->AddItem(ItemId, PlacementRequest))
-		{
+		{			
 			return false;
 		}
-	}
-
+	}	
+	
 	Items.Add(ItemId);
-	NotifyItemChanged(ItemId, InventoryGameplayTags::Inventory_Message_ItemAdded);
-	NotifyItemTaken(ItemId);
+	NotifyItemChanged(ItemId, InventoryGameplayTags::Inventory_Message_ItemAdded);	
+	auto ItemHoldingRegistry = GetWorld()->GetSubsystem<UItemHoldingContainerRegistry>();
+	ItemHoldingRegistry->Claim(ItemId, this);
 	return true;
 }
 
@@ -183,13 +186,15 @@ bool ULyraInventoryManagerComponent::RemoveItem(FGuid ItemId)
 	}
 
 	NotifyItemChanged(ItemId, InventoryGameplayTags::Inventory_Message_ItemRemoved);
+	auto ItemHoldingRegistry = GetWorld()->GetSubsystem<UItemHoldingContainerRegistry>();
+	ItemHoldingRegistry->Release(ItemId, this);
 	return true;
 }
 
 bool ULyraInventoryManagerComponent::MoveItem(FGuid ItemId, FItemPlacementRequest PlacementRequest)
 {
 	if (!HasAuthority() || !HasItem(ItemId) || !PlacementManager)
-	{
+	{		
 		return false;
 	}
 
@@ -357,6 +362,30 @@ bool ULyraInventoryManagerComponent::ConsumeItemsByDefinition(TSubclassOf<ULyraI
 void ULyraInventoryManagerComponent::OnRep_Items()
 {
 	
+}
+
+//Inventory container interface
+void ULyraInventoryManagerComponent::Extract_Implementation(FGuid ItemId)
+{
+	RemoveItem(ItemId);
+}
+
+bool ULyraInventoryManagerComponent::CanInsertItem_Implementation(FGuid Old, FGuid New)
+{	
+	bool Result = true;
+	if (PlacementManager)
+	{
+		Result = PlacementManager->CanReplaceItem(Old, New);
+	}
+	return Result;
+}
+
+void ULyraInventoryManagerComponent::InsertItem_Implementation(FGuid Old, FGuid New)
+{
+	FItemPlacementRequest PlacementRequest;
+	PlacementRequest.Position = PlacementManager->GetItemPosition(Old);
+	Extract_Implementation(Old);	
+	AddItem(New, PlacementRequest);
 }
 
 //////////////////////////////////////////////////////////////////////

@@ -28,6 +28,8 @@ public:
 
 	virtual const TArray<FItemData>& GetSlots() const override { return Slots; }
 	virtual FItemData GetSlotData(int32 Index) const override;
+	virtual bool CanReplaceItem(FGuid Old, FGuid New) const override;
+	virtual int32 GetItemPosition(FGuid ItemId) const override;
 
 protected:
 	virtual bool AddItem(FGuid ItemId, FItemPlacementRequest Request) override;

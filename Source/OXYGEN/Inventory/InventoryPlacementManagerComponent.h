@@ -63,6 +63,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory|Placement")
 	virtual FItemData GetSlotData(int32 Index) const;
+	
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Placement")
+	virtual bool CanReplaceItem(FGuid Old, FGuid New) const;
+	
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Placement")
+	virtual int32 GetItemPosition(FGuid ItemId) const;
 
 protected:
 	virtual bool AddItem(FGuid ItemId, FItemPlacementRequest Request);

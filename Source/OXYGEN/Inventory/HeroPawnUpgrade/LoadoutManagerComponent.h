@@ -98,4 +98,6 @@ private:
 	//IInventoryContainer interface
 public:
 	virtual void Extract_Implementation(FGuid ItemId) override;
+	virtual bool CanInsertItem_Implementation(FGuid Old, FGuid New) override;
+	virtual void InsertItem_Implementation(FGuid Old, FGuid New) override;
 };

@@ -94,7 +94,10 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
 	bool ConsumeItemsByDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, int32 NumToConsume);
 
+	// Inventory container Interface
 	virtual void Extract_Implementation(FGuid ItemId) override;
+	virtual bool CanInsertItem_Implementation(FGuid Old, FGuid New) override;
+	virtual void InsertItem_Implementation(FGuid Old, FGuid New) override;
 
 protected:
 	UFUNCTION()

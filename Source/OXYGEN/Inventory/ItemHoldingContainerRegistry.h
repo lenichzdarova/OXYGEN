@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "InventoryItemContainer.h"
-#include "GameFramework/GameplayMessageSubsystem.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "ItemHoldingContainerRegistry.generated.h"
 
@@ -24,13 +23,19 @@ public:
 	
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	TScriptInterface<IInventoryItemContainer> FindContainer(FGuid ItemId) const;
+	UObject* FindHolder(FGuid ItemId) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void Claim(FGuid ItemId, UObject* NewHolder);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void Release(FGuid ItemId, UObject* Holder);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	bool SwapItems(FGuid ItemA, FGuid ItemB);
+	
 
 private:
-	void OnItemTaken(FGameplayTag Channel, const FItemTakenMessage& Message);
-
 	UPROPERTY()
-	TMap<FGuid, TScriptInterface<IInventoryItemContainer>> Locations;
-
-	FGameplayMessageListenerHandle ListenerHandle;
+	TMap<FGuid, UObject*> Locations;	
 };

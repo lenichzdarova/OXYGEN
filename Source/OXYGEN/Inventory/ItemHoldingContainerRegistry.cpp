@@ -17,51 +17,80 @@ void UItemHoldingContainerRegistry::Initialize(FSubsystemCollectionBase& Collect
 
 void UItemHoldingContainerRegistry::OnWorldBeginPlay(UWorld& InWorld)
 {
-	Super::OnWorldBeginPlay(InWorld);
-	ListenerHandle = UGameplayMessageSubsystem::Get(this).RegisterListener<FItemTakenMessage>(
-		InventoryGameplayTags::Inventory_Message_ItemTaken_ByContainer,
-		this,
-		&UItemHoldingContainerRegistry::OnItemTaken);
+	Super::OnWorldBeginPlay(InWorld);	
 }
 
 void UItemHoldingContainerRegistry::Deinitialize()
 {	
-	if (ListenerHandle.IsValid())
-	{
-		
-		if (UGameplayMessageSubsystem::HasInstance(this))
-		{
-			UGameplayMessageSubsystem& GameplayMessageSubsystem = UGameplayMessageSubsystem::Get(this);
-			GameplayMessageSubsystem.UnregisterListener(ListenerHandle);
-		}
-		ListenerHandle = FGameplayMessageListenerHandle();
-	}
-
 	Locations.Reset();
 	Super::Deinitialize();
 }
 
-TScriptInterface<IInventoryItemContainer> UItemHoldingContainerRegistry::FindContainer(FGuid ItemId) const
+UObject* UItemHoldingContainerRegistry::FindHolder(FGuid ItemId) const
 {
-	if (const TScriptInterface<IInventoryItemContainer>* Found = Locations.Find(ItemId))
+	if (auto Found = Locations.Find(ItemId))
 	{
 		return *Found;
 	}
-	return TScriptInterface<IInventoryItemContainer>();
+	return nullptr;
 }
 
-void UItemHoldingContainerRegistry::OnItemTaken(FGameplayTag Channel, const FItemTakenMessage& Message)
-{	
-	if (!Message.ItemId.IsValid() || !Message.Container.GetObject())
+void UItemHoldingContainerRegistry::Claim(FGuid ItemId, UObject* NewHolder)
+{
+	if (!ItemId.IsValid() || !NewHolder)
 	{
 		return;
 	}
 
-	const TScriptInterface<IInventoryItemContainer> Old = FindContainer(Message.ItemId);
-	if (Old.GetObject() && Old.GetObject() != Message.Container.GetObject())
+	if (UObject* CurrentHolder = FindHolder(ItemId))
 	{
-		IInventoryItemContainer::Execute_Extract(Old.GetObject(), Message.ItemId);
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("Item %s is already held by %s"), *ItemId.ToString(), *CurrentHolder->GetName()));
+		if (CurrentHolder != NewHolder)
+		{
+			IInventoryItemContainer::Execute_Extract(CurrentHolder, ItemId);
+		}
 	}
 
-	Locations.Add(Message.ItemId, Message.Container);
+	Locations.Add(ItemId, NewHolder);
 }
+
+void UItemHoldingContainerRegistry::Release(FGuid ItemId, UObject* Holder)
+{
+	if (FindHolder(ItemId) == Holder)
+	{
+		Locations.Remove(ItemId);
+	}
+}
+
+bool UItemHoldingContainerRegistry::SwapItems(FGuid ItemA, FGuid ItemB)
+{
+	UObject* HolderA = FindHolder(ItemA);
+	UObject* HolderB = FindHolder(ItemB);
+	if (!HolderA || !HolderB)
+	{
+		return false;
+	}
+
+	if (!IInventoryItemContainer::Execute_CanInsertItem(HolderA, ItemA, ItemB) ||
+		!IInventoryItemContainer::Execute_CanInsertItem(HolderB, ItemB, ItemA))
+	{
+		return false;
+	}
+	
+	Release(ItemA, HolderA);
+	Release(ItemB, HolderB);
+
+	IInventoryItemContainer::Execute_InsertItem(HolderA, ItemA, ItemB);
+	IInventoryItemContainer::Execute_InsertItem(HolderB, ItemB, ItemA);
+
+	Locations.Add(ItemA, HolderB);
+	Locations.Add(ItemB, HolderA);
+	return true;
+}
+
+
+
+
+
+
+
