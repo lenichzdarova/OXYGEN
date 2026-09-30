@@ -2,6 +2,8 @@
 
 #include "LyraQuickBarComponent.h"
 
+#include "InventoryFragment_InventoryIcon.h"
+#include "InventoryFragment_QuickBarIcon.h"
 #include "InventoryGameplayTags.h"
 #include "InventoryItemRegistry.h"
 #include "Equipment/LyraEquipmentDefinition.h"
@@ -159,11 +161,17 @@ bool ULyraQuickBarComponent::AddItemToSlot(int32 SlotIndex, FGuid ItemId)
 		return false;
 	}
 
-	const FItemData Data = Registry->MakeData(ItemId);
+	const FItemData Data = Registry->MakeData(ItemId);	
 	if (!Data.IsValid())
 	{
 		return false;
 	}
+	auto DefinitionClass = Data.Def->GetDefaultObject<ULyraInventoryItemDefinition>();
+	if (!DefinitionClass->FindFragmentByClass(UInventoryFragment_QuickBarIcon::StaticClass()))
+	{
+		return false;
+	}
+	
 
 	const int32 Existing = Slots.IndexOfByPredicate([&ItemId](const FItemData& Slot)
 	{
