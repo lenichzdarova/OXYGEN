@@ -2,13 +2,18 @@
 
 #include "LyraInventoryManagerComponent.h"
 
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
+#include "LyraAbilitySystemComponent.h"
 #include "InventoryGameplayTags.h"
 #include "Engine/World.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "InventoryItemRegistry.h"
 #include "ItemHoldingContainerRegistry.h"
 #include "LyraInventoryItemDefinition.h"
+#include "LyraPlayerState.h"
 #include "NativeGameplayTags.h"
+#include "Abilities/GameplayAbility_ItemDrop.h"
 #include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(LyraInventoryManagerComponent)
@@ -199,6 +204,39 @@ bool ULyraInventoryManagerComponent::MoveItem(FGuid ItemId, FItemPlacementReques
 	}
 
 	return PlacementManager->MoveItem(ItemId, PlacementRequest);
+}
+
+void ULyraInventoryManagerComponent::DropItem(FGuid ItemId)
+{
+	if (!ItemId.IsValid() || !HasItem(ItemId))
+	{
+		return;
+	}
+
+	AActor* OwnerActor = GetOwner();
+	
+	APawn* Pawn = Cast<APawn>(GetOwner());
+	ALyraPlayerState* PlayerState = Pawn ? Pawn->GetPlayerState<ALyraPlayerState>() : nullptr;
+	UAbilitySystemComponent* ASC = PlayerState ? PlayerState->GetLyraAbilitySystemComponent() : nullptr;
+	/*UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OwnerActor);
+	if (!ASC)
+	{
+		return;
+	}*/
+
+	FGameplayEventData Payload;
+	Payload.EventTag = TAG_Ability_Inventory_Drop;
+	Payload.Instigator = OwnerActor;
+	Payload.Target = OwnerActor;
+
+	FOxygenDropItemTargetData* DropData = new FOxygenDropItemTargetData();
+	DropData->ItemId = ItemId;
+
+	FGameplayAbilityTargetDataHandle TargetData;
+	TargetData.Add(DropData);
+	Payload.TargetData = TargetData;
+
+	auto Result = ASC->HandleGameplayEvent(Payload.EventTag, &Payload);		
 }
 
 void ULyraInventoryManagerComponent::Server_AddItem_Implementation(FGuid ItemId, FItemPlacementRequest PlacementRequest)

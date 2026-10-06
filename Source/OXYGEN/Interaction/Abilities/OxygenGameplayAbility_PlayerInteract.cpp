@@ -36,6 +36,13 @@ void UOxygenGameplayAbility_PlayerInteract::EndAbility(const FGameplayAbilitySpe
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
+void UOxygenGameplayAbility_PlayerInteract::InputPressed(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	Super::InputPressed(Handle, ActorInfo, ActivationInfo);	
+	TriggerInteraction();
+}
+
 void UOxygenGameplayAbility_PlayerInteract::StartInteractionTrace()
 {
 	AActor* AvatarActor = GetAvatarActorFromActorInfo();
@@ -51,8 +58,10 @@ void UOxygenGameplayAbility_PlayerInteract::StartInteractionTrace()
 	// Trace starts at the avatar. AimWithPlayerController then bends the end point through the camera view,
 	// which is the same setup GA_Interact uses for its single-line task.
 	FGameplayAbilityTargetingLocationInfo StartLocation;
-	StartLocation.LocationType = EGameplayAbilityTargetingLocationType::ActorTransform;
-	StartLocation.SourceActor = AvatarActor;
+	StartLocation.LocationType = EGameplayAbilityTargetingLocationType::SocketTransform;	
+	//StartLocation.SourceActor = AvatarActor;
+	StartLocation.SourceComponent = AvatarActor->GetComponentByClass<UMeshComponent>();
+	StartLocation.SourceSocketName = FName("Camera");
 	StartLocation.SourceAbility = this;
 
 	InteractionTraceTask = UAbilityTask_WaitForInteractableTargets_SingleLineTrace::WaitForInteractableTargets_SingleLineTrace(
@@ -65,13 +74,13 @@ void UOxygenGameplayAbility_PlayerInteract::StartInteractionTrace()
 		bShowInteractionTrace);
 
 	InteractionTraceTask->InteractableObjectsChanged.AddDynamic(this, &ThisClass::HandleInteractableObjectsChanged);
-	InteractionTraceTask->ReadyForActivation();
+	InteractionTraceTask->ReadyForActivation();	
 }
 
 void UOxygenGameplayAbility_PlayerInteract::HandleInteractableObjectsChanged(const TArray<FInteractionOption>& InteractiveOptions)
 {
 	UE_LOG(LogLyra, Verbose, TEXT("%s interaction trace options changed: %d"), *GetNameSafe(GetAvatarActorFromActorInfo()), InteractiveOptions.Num());
-
+	
 	// Picks InteractionWidgetClass from the current option, or DefaultInteractionWidgetClass, and shows it via the indicator manager.
 	UpdateInteractions(InteractiveOptions);
 }

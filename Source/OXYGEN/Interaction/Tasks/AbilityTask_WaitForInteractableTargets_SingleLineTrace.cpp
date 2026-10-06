@@ -69,8 +69,7 @@ void UAbilityTask_WaitForInteractableTargets_SingleLineTrace::PerformTrace()
 	LineTrace(OutHitResult, World, TraceStart, TraceEnd, TraceProfile.Name, Params);
 
 	TArray<TScriptInterface<IInteractableTarget>> InteractableTargets;
-	UInteractionStatics::AppendInteractableTargetsFromHitResult(OutHitResult, InteractableTargets);
-
+	UInteractionStatics::AppendInteractableTargetsFromHitResult(OutHitResult, InteractableTargets);	
 	UpdateInteractableOptions(InteractionQuery, InteractableTargets);
 
 #if ENABLE_DRAW_DEBUG

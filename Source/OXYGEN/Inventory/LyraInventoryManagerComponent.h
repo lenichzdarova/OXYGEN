@@ -54,6 +54,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
 	bool MoveItem(FGuid ItemId, FItemPlacementRequest PlacementRequest);
+	
+	UFUNCTION(BlueprintCallable, Category = Inventory)
+	void DropItem(FGuid ItemId);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
 	bool DestroyItem(FGuid ItemId);

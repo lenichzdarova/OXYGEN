@@ -112,7 +112,7 @@ void UAbilityTask_WaitForInteractableTargets::UpdateInteractableOptions(const FI
 	{
 		TArray<FInteractionOption> TempOptions;
 		FInteractionOptionBuilder InteractionBuilder(InteractiveTarget, TempOptions);
-		InteractiveTarget->GatherInteractionOptions(InteractQuery, InteractionBuilder);
+		InteractiveTarget->GatherInteractionOptions(InteractQuery, InteractionBuilder);		
 
 		for (FInteractionOption& Option : TempOptions)
 		{
@@ -175,5 +175,5 @@ void UAbilityTask_WaitForInteractableTargets::UpdateInteractableOptions(const FI
 	{
 		CurrentOptions = NewOptions;
 		InteractableObjectsChanged.Broadcast(CurrentOptions);
-	}
+	}	
 }

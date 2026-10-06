@@ -28,6 +28,7 @@ public:
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
 protected:
 
@@ -46,7 +47,7 @@ protected:
 
 	/** Draws the look-at trace. Green is a miss, red is a blocking hit. */
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	bool bShowInteractionTrace = false;
+	bool bShowInteractionTrace = true;
 
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_WaitForInteractableTargets_SingleLineTrace> InteractionTraceTask;

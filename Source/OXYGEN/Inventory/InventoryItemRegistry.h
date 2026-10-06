@@ -61,4 +61,17 @@ public:
 private:
 	UPROPERTY()
 	TMap<FGuid, TObjectPtr<ULyraInventoryItemInstance>> Items;
+
+public:
+	static FItemData GetItemData(const UObject* WorldContext, FGuid ItemId)
+	{
+		if (const UWorld* World = GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::LogAndReturnNull))
+		{
+			if (const UInventoryItemRegistry* Registry = World->GetGameInstance()->GetSubsystem<UInventoryItemRegistry>())
+			{
+				return Registry->MakeData(ItemId);
+			}
+		}
+		return FItemData();
+	}
 };
