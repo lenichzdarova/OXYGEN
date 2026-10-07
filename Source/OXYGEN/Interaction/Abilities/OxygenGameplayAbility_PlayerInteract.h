@@ -47,7 +47,7 @@ protected:
 
 	/** Draws the look-at trace. Green is a miss, red is a blocking hit. */
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	bool bShowInteractionTrace = true;
+	bool bShowInteractionTrace = false;
 
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_WaitForInteractableTargets_SingleLineTrace> InteractionTraceTask;
