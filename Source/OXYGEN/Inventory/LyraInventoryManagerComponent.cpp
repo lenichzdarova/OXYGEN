@@ -39,7 +39,8 @@ void ULyraInventoryManagerComponent::BeginPlay()
 void ULyraInventoryManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME_CONDITION(ThisClass, Items, COND_OwnerOnly);
+	DOREPLIFETIME(ThisClass, Items);
+	//DOREPLIFETIME_CONDITION(ThisClass, Items, COND_OwnerOnly);
 }
 
 UInventoryItemRegistry* ULyraInventoryManagerComponent::GetRegistry() const

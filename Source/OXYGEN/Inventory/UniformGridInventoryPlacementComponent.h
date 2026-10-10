@@ -19,6 +19,8 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Storage")
 	int32 MaxSlots = 48;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Storage")
+	int32 MaxColumn = 6;
 
 	virtual bool CanPlaceItem(FGuid ItemId, FItemPlacementRequest Request) override;
 	virtual bool CanPlaceDefinition(TSubclassOf<ULyraInventoryItemDefinition> ItemDef, FItemPlacementRequest Request) override;

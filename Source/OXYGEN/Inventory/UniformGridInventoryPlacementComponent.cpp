@@ -20,7 +20,8 @@ void UUniformGridInventoryPlacementComponent::BeginPlay()
 void UUniformGridInventoryPlacementComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME_CONDITION(ThisClass, Slots, COND_OwnerOnly);
+	DOREPLIFETIME(ThisClass, Slots);
+	//DOREPLIFETIME_CONDITION(ThisClass, Slots, COND_OwnerOnly);
 }
 
 bool UUniformGridInventoryPlacementComponent::CanPlaceItem(FGuid ItemId, FItemPlacementRequest Request)
