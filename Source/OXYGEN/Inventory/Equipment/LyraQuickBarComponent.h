@@ -3,6 +3,7 @@
 #pragma once
 
 #include "InventoryItemRegistry.h"
+#include "LyraInventoryManagerComponent.h"
 #include "Components/PawnComponent.h"
 #include "Inventory/LyraInventoryItemInstance.h"
 
@@ -98,6 +99,8 @@ private:
 	bool IsSlotEmpty(int32 SlotIndex) const;
 	void NotifySlotsChanged();
 	void NotifyActiveIndexChanged();
+	UFUNCTION()
+	void OnItemRemovedFromInventory(FGameplayTag Tag, const FLyraInventoryChangeMessage& Message);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory|QuickBar")
 	int32 NumSlots = 5;

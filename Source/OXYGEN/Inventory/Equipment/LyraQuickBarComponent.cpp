@@ -39,6 +39,9 @@ void ULyraQuickBarComponent::BeginPlay()
 	if (HasAuthority() && Slots.Num() < NumSlots)
 	{
 		Slots.SetNum(NumSlots);
+		
+		FGameplayTag Channel = InventoryGameplayTags::Inventory_Message_ItemRemoved;
+		UGameplayMessageSubsystem::Get(this).RegisterListener(Channel, this, &ULyraQuickBarComponent::OnItemRemovedFromInventory);
 	}
 }
 
@@ -285,5 +288,17 @@ void ULyraQuickBarComponent::NotifyActiveIndexChanged()
 	Message.ActiveIndex = ActiveSlotIndex;
 
 	UGameplayMessageSubsystem::Get(this).BroadcastMessage(InventoryGameplayTags::Inventory_QuickBar_Message_ActiveIndexChanged, Message);
+}
+
+void ULyraQuickBarComponent::OnItemRemovedFromInventory(FGameplayTag Tag, const FLyraInventoryChangeMessage& Message)
+{
+	const int32 SlotIndex = Slots.IndexOfByPredicate([&Message](const FItemData& Slot)
+	{
+		return Slot.ItemId == Message.ItemId;
+	});
+	if (SlotIndex != INDEX_NONE)
+	{
+		RemoveItemFromSlot(SlotIndex);
+	}
 }
 
