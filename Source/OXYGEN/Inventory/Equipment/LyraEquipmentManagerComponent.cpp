@@ -61,7 +61,7 @@ void FLyraEquipmentList::PostReplicatedChange(const TArrayView<int32> ChangedInd
 ULyraAbilitySystemComponent* FLyraEquipmentList::GetAbilitySystemComponent() const
 {
 	check(OwnerComponent);
-	AActor* OwningActor = OwnerComponent->GetOwner();
+	AActor* OwningActor = OwnerComponent->GetOwner();	
 	return Cast<ULyraAbilitySystemComponent>(UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OwningActor));
 }
 

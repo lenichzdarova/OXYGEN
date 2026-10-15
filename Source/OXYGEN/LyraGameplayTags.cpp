@@ -78,7 +78,8 @@ namespace LyraGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(UI_Layer_MainMenu, "UI.Layer.MainMenu", "Main menu layer for UI elements");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(UI_Layer_Modal, "UI.Layer.Modal", "Modal layer for UI elements");
 	
-	
+	//Status
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(STATUS_BUILDING_PREVIEW, "Status.Building.Preview", "Status for building preview");
 	
 	
 
