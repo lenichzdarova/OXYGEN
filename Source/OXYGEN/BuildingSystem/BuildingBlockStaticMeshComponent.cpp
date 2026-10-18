@@ -3,8 +3,7 @@
 
 UBuildingBlockStaticMeshComponent::UBuildingBlockStaticMeshComponent()
 {
-	SetIsReplicatedByDefault(true);
-	CurrentVariant = Tag_Building_Mesh_Type_Default;
+	SetIsReplicatedByDefault(true);		
 }
 
 void UBuildingBlockStaticMeshComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -12,6 +11,26 @@ void UBuildingBlockStaticMeshComponent::GetLifetimeReplicatedProps(TArray<FLifet
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UBuildingBlockStaticMeshComponent, CurrentVariant);
 }
+
+void UBuildingBlockStaticMeshComponent::OnRegister()
+{
+	Super::OnRegister();
+	ApplyCurrentVariant();
+}
+
+#if WITH_EDITOR
+void UBuildingBlockStaticMeshComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(UBuildingBlockStaticMeshComponent, BlockDefinition) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(UBuildingBlockStaticMeshComponent, CurrentVariant))
+	{
+		ApplyCurrentVariant();
+	}
+}
+#endif
 
 void UBuildingBlockStaticMeshComponent::SetBlockDefinition(UBuildingBlockDefinition* InDefinition)
 {
@@ -57,9 +76,6 @@ void UBuildingBlockStaticMeshComponent::ApplyCurrentVariant()
 	if (CurrentVariant.IsValid() && BlockDefinition->HaveVariant(CurrentVariant))
 	{
 		const FBuildingBlockVariant Variant = BlockDefinition->GetVariantByTag(CurrentVariant);
-		SetStaticMesh(Variant.Mesh);
-		return;
+		SetStaticMesh(Variant.Mesh);		
 	}
-
-	SetStaticMesh(BlockDefinition->DefaultMesh);
 }

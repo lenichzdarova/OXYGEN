@@ -32,10 +32,6 @@ public:
 	UPROPERTY(EditAnywhere, Meta = (Categories = "Building.Block.Type"))
 	FGameplayTag BlockType;
 
-	// дефолтный вариант (тот, что сейчас Mesh)
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<UStaticMesh> DefaultMesh;
-
 	// все возможные состояния этого куска
 	UPROPERTY(EditAnywhere)
 	TArray<FBuildingBlockVariant> Variants;

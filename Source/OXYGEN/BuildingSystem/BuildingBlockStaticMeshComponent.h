@@ -18,7 +18,7 @@ public:
 	TObjectPtr<UBuildingBlockDefinition> BlockDefinition;
 
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentVariant, BlueprintReadOnly, Category="Building")
-	FGameplayTag CurrentVariant;
+	FGameplayTag CurrentVariant = Tag_Building_Mesh_Type_Default;
 
 	UFUNCTION(BlueprintCallable, Category="Building")
 	void SetBlockDefinition(UBuildingBlockDefinition* InDefinition);
@@ -30,6 +30,12 @@ public:
 	bool HasVariant(FGameplayTag VariantTag) const;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	virtual void OnRegister() override;
+	
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 
 protected:
 	UFUNCTION()
