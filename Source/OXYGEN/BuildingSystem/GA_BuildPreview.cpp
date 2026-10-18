@@ -4,12 +4,14 @@
 #include "BaseManagerSubsystem.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 UGA_BuildPreview::UGA_BuildPreview()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
     ActivationPolicy = ELyraAbilityActivationPolicy::OnSpawn;
+    ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 }
 
 void UGA_BuildPreview::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -45,13 +47,11 @@ void UGA_BuildPreview::OnPreviewChanged(AActor* InPreview)
     
     if (InPreview)
     {
-        HandlePreviewAdded(InPreview);
-        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Preview added"));
+        HandlePreviewAdded(InPreview);       
     }
     else
     {
-        HandlePreviewRemoved(InPreview);
-        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Preview removed"));
+        HandlePreviewRemoved(InPreview);        
     }
 }
 
@@ -116,7 +116,9 @@ void UGA_BuildPreview::Server_UpdatePreview_Implementation(FVector_NetQuantize D
 {
     
     if (!PreviewActor)
+    {
         return;
+    }     
 
     if (UBaseManagerSubsystem* BaseSys = GetWorld()->GetSubsystem<UBaseManagerSubsystem>())
     {

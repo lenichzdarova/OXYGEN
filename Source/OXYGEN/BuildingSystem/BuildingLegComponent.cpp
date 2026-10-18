@@ -9,6 +9,7 @@ UBuildingLegComponent::UBuildingLegComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
+	
 }
 
 void UBuildingLegComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
