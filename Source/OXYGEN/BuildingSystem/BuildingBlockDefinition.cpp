@@ -3,11 +3,28 @@
 
 #include "BuildingBlockDefinition.h"
 
-//Block section
-UE_DEFINE_GAMEPLAY_TAG_COMMENT(Tag_Building_Block_Type_Wall,"Building.Block.Type.Wall" , "Wall block type")
-UE_DEFINE_GAMEPLAY_TAG_COMMENT(Tag_Building_Block_Type_Floor, "Building.Block.Type.Floor" , "Floor block type")
-UE_DEFINE_GAMEPLAY_TAG_COMMENT(Tag_Building_Block_Type_Ceiling, "Building.Block.Type.Ceiling" , "Ceiling block type")
-UE_DEFINE_GAMEPLAY_TAG_COMMENT(Tag_Building_Block_Type_Connector, "Building.Block.Type.Connector" , "Connector block type")
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(Tag_Building_Mesh_Type_Default, "Building.Mesh.Type.Default", "Default mesh type")
 
-//Mesh section
-UE_DEFINE_GAMEPLAY_TAG_COMMENT(Tag_Building_Mesh_Type_Default, "Building.Mesh.Type.Default" , "Default mesh type")
+FBuildingBlockVariant UBuildingBlockDefinition::GetVariantByTag(FGameplayTag VariantTag) const
+{
+	for (const FBuildingBlockVariant& Variant : Variants)
+	{
+		if (Variant.VariantTag.MatchesTagExact(VariantTag))
+		{
+			return Variant;
+		}
+	}
+	return FBuildingBlockVariant();
+}
+
+bool UBuildingBlockDefinition::HaveVariant(FGameplayTag VariantTag) const
+{
+	for (const FBuildingBlockVariant& Variant : Variants)
+	{
+		if (Variant.VariantTag.MatchesTagExact(VariantTag))
+		{
+			return true;
+		}
+	}
+	return false;
+}

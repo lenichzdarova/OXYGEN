@@ -1,30 +1,65 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "BuildingBlockStaticMeshComponent.h"
+#include "Net/UnrealNetwork.h"
 
 UBuildingBlockStaticMeshComponent::UBuildingBlockStaticMeshComponent()
 {
-	if (BlockDefinition)
-	{
-		SetStaticMesh(BlockDefinition->Mesh);
-	}
+	SetIsReplicatedByDefault(true);
+	CurrentVariant = Tag_Building_Mesh_Type_Default;
 }
 
-void UBuildingBlockStaticMeshComponent::SetBlockDefinition(UBuildingBlockDefinition* InBlockDefinition)
+void UBuildingBlockStaticMeshComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	BlockDefinition = InBlockDefinition;
-	OnDefinitionSet();
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UBuildingBlockStaticMeshComponent, CurrentVariant);
 }
 
-void UBuildingBlockStaticMeshComponent::OnDefinitionSet()
+void UBuildingBlockStaticMeshComponent::SetBlockDefinition(UBuildingBlockDefinition* InDefinition)
 {
-	if (BlockDefinition)
+	BlockDefinition = InDefinition;
+	ApplyCurrentVariant();
+}
+
+bool UBuildingBlockStaticMeshComponent::SetVariant(FGameplayTag NewVariant)
+{
+	if (!BlockDefinition || !BlockDefinition->HaveVariant(NewVariant))
 	{
-		SetStaticMesh(BlockDefinition->Mesh);
+		return false;
 	}
-	else
+
+	if (CurrentVariant == NewVariant)
+	{
+		return true;
+	}
+
+	CurrentVariant = NewVariant;
+	OnRep_CurrentVariant();
+	return true;
+}
+
+bool UBuildingBlockStaticMeshComponent::HasVariant(FGameplayTag VariantTag) const
+{
+	return BlockDefinition && BlockDefinition->HaveVariant(VariantTag);
+}
+
+void UBuildingBlockStaticMeshComponent::OnRep_CurrentVariant()
+{
+	ApplyCurrentVariant();
+}
+
+void UBuildingBlockStaticMeshComponent::ApplyCurrentVariant()
+{
+	if (!BlockDefinition)
 	{
 		SetStaticMesh(nullptr);
+		return;
 	}
+
+	if (CurrentVariant.IsValid() && BlockDefinition->HaveVariant(CurrentVariant))
+	{
+		const FBuildingBlockVariant Variant = BlockDefinition->GetVariantByTag(CurrentVariant);
+		SetStaticMesh(Variant.Mesh);
+		return;
+	}
+
+	SetStaticMesh(BlockDefinition->DefaultMesh);
 }

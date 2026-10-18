@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "HabitatMashSet.generated.h"
+#include "HabitatMeshSet.generated.h"
 
 USTRUCT(BlueprintType)
 struct FBaseMeshEntry
@@ -19,7 +19,7 @@ struct FBaseMeshEntry
 };
 
 UCLASS(BlueprintType)
-class OXYGEN_API UHabitatMashSet : public UDataAsset
+class OXYGEN_API UHabitatMeshSet : public UDataAsset
 {
 	GENERATED_BODY()
 	

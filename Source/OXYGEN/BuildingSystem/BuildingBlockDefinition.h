@@ -7,13 +7,19 @@
 #include "Engine/DataAsset.h"
 #include "BuildingBlockDefinition.generated.h"
 
-
-UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tag_Building_Block_Type_Wall)
-UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tag_Building_Block_Type_Floor)
-UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tag_Building_Block_Type_Ceiling)
-UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tag_Building_Block_Type_Connector)
-
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tag_Building_Mesh_Type_Default)
+
+USTRUCT(BlueprintType)
+struct FBuildingBlockVariant
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Meta = (Categories = "Building.Mesh.Type"))
+	FGameplayTag VariantTag;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UStaticMesh> Mesh;
+};
 /**
  * 
  */
@@ -25,7 +31,17 @@ class OXYGEN_API UBuildingBlockDefinition : public UPrimaryDataAsset
 public:
 	UPROPERTY(EditAnywhere, Meta = (Categories = "Building.Block.Type"))
 	FGameplayTag BlockType;
-	
+
+	// дефолтный вариант (тот, что сейчас Mesh)
 	UPROPERTY(EditAnywhere)
-	UStaticMesh* Mesh;
+	TObjectPtr<UStaticMesh> DefaultMesh;
+
+	// все возможные состояния этого куска
+	UPROPERTY(EditAnywhere)
+	TArray<FBuildingBlockVariant> Variants;
+
+	UFUNCTION(BlueprintCallable)
+	FBuildingBlockVariant GetVariantByTag(FGameplayTag VariantTag) const;
+	UFUNCTION(BlueprintCallable)
+	bool HaveVariant(FGameplayTag VariantTag) const;
 };
