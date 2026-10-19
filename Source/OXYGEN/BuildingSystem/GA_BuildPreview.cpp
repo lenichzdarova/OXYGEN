@@ -94,8 +94,8 @@ void UGA_BuildPreview::UpdatePreview()
     {
         return;
     }
-        
-    Server_UpdatePreview(GetLookLocation(), PreviewActor->GetActorRotation());    
+    FRotator DesiredRotation {0, GetAvatarActorFromActorInfo()->GetActorRotation().Yaw, 0};
+    Server_UpdatePreview(GetLookLocation(), DesiredRotation);    
 }
 
 FVector UGA_BuildPreview::GetLookLocation() const

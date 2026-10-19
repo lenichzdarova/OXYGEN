@@ -105,8 +105,13 @@ FTransform UBaseManagerSubsystem::GetPreviewTransform(const FTransform& DesiredT
 
             FVector SnappedLocation = Root.TransformPosition(LocalPos);
 
-            FRotator SnappedRotation = DesiredRotation;
-            SnappedRotation.Yaw = FMath::GridSnap(SnappedRotation.Yaw, 90.f);
+            // ротация относительно корня базы
+            const float RootYaw = Root.Rotator().Yaw;
+            float RelativeYaw = FRotator::NormalizeAxis(DesiredRotation.Yaw - RootYaw);
+            RelativeYaw = FMath::GridSnap(RelativeYaw, 90.f);
+
+            FRotator SnappedRotation;
+            SnappedRotation.Yaw = FRotator::NormalizeAxis(RootYaw + RelativeYaw);
             SnappedRotation.Pitch = 0.f;
             SnappedRotation.Roll = 0.f;
 
