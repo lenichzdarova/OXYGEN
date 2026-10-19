@@ -95,42 +95,34 @@ bool ABuildingPreviewActor::TryFindConnectorTarget( UBuildingBlockStaticMeshComp
 
     const FVector LocA = FromComp->GetComponentLocation();
     const FVector LocB = Other->GetComponentLocation();
+    const FVector Delta = LocB - LocA;
 
-    int32 MatchingAxes = 0;
-    if (FMath::IsNearlyEqual(LocA.X, LocB.X, AxisTolerance)) MatchingAxes++;
-    if (FMath::IsNearlyEqual(LocA.Y, LocB.Y, AxisTolerance)) MatchingAxes++;
-    if (FMath::IsNearlyEqual(LocA.Z, LocB.Z, AxisTolerance)) MatchingAxes++;
+    OutDistance = Delta.Size();
 
-    if (MatchingAxes < 2)
+    if (OutDistance <= 80.f)
+    {
+        return false;
+    }
+
+    const FVector Dir = Delta.GetSafeNormal();
+    if (Dir.IsNearlyZero())
+    {
+        return false;
+    }
+
+    const float Dot = FMath::Abs(FVector::DotProduct(FromComp->GetForwardVector(), Dir));
+    if (Dot < 0.95f)
+    {
+        return false;
+    }
+
+    const float HeightDiff = FMath::Abs(FVector::DotProduct(Delta, FromComp->GetUpVector()));
+    if (HeightDiff > AxisTolerance)
     {
         return false;
     }
 
     OutTarget = Other;
-    OutDistance = FVector::Dist(LocA, LocB);
-    if (OutDistance <= 80.f)
-    {
-        return false;
-    }    
-    
-    const FVector Delta = LocB - LocA;
-    const FVector Dir = Delta.GetSafeNormal();
-/*
-    if (Dir.IsNearlyZero())
-    {
-        return false;
-    }*/
-
-    // угол между направлением к цели и forward компонента
-    const float Dot = FMath::Abs(FVector::DotProduct(FromComp->GetForwardVector(), Dir));
-
-    // Dot ≈ 1 → почти 0° или 180° (смотрим друг на друга по оси)
-    // если меньше порога — диагональ, пропускаем
-    if (Dot < 0.95f)   // примерно ±18°, подбери под себя
-    {
-        return false;
-    }
-    
     return true;
 }
 
