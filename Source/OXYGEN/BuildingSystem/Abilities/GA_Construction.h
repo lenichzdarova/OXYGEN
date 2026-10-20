@@ -24,6 +24,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Construction")
 	float ProgressPerSecond = 0.3f;
 
+	UPROPERTY(EditDefaultsOnly, Category="Construction")
+	float TraceDistance = 500.f;
+
 	UPROPERTY()
 	TObjectPtr<AActor> TargetActor;
 
@@ -32,12 +35,12 @@ protected:
 
 	FTimerHandle ProgressTimer;
 
-	void StartConstructionFromPreview();
 	void TickConstruction();
 	void StopProgress();
 
 	UFUNCTION(Server, Reliable)
-	void Server_StartConstruction(AActor* PreviewActor);
+	void Server_StartConstruction(AActor* InPreviewActor);
 
 	ABuildingPreviewActor* GetPreviewActor() const;
+	UHabitatConstructionComponent* FindConstructionTarget() const;
 };
