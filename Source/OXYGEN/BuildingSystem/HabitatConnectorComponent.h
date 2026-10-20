@@ -51,6 +51,8 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	bool TraceForComponent(const FVector& Direction, UBuildingBlockStaticMeshComponent*& OutComp) const;
+	
+	UBuildingBlockStaticMeshComponent* FindClosestConnectorComponent(AActor* Module, const FVector& NearLocation) const;
 
 	UFUNCTION()
 	void OnModuleDestroyed(AActor* DestroyedActor);

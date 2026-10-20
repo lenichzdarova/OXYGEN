@@ -80,6 +80,7 @@ void ABuildingPreviewActor::ClearPreviewConnectors()
         }
     }
     PreviewConnectors.Empty();
+    PendingConnectors.Empty();
 }
 
 TArray<UBuildingBlockStaticMeshComponent*> ABuildingPreviewActor::GetConnectorComponents() const
@@ -176,6 +177,18 @@ const FConnectorLengthOption* ABuildingPreviewActor::FindBestLengthOption(float 
 void ABuildingPreviewActor::SpawnPreviewConnector( UBuildingBlockStaticMeshComponent* From, UBuildingBlockStaticMeshComponent* To, const FConnectorLengthOption& Option)
 {
     if (!From || !To || !Option.ConnectorClass)
+    {
+        return;
+    }
+
+    const bool bAlreadyExists = PendingConnectors.ContainsByPredicate(
+        [&](const FPendingConnector& Existing)
+        {
+            return (Existing.FromComp == From && Existing.ToComp == To) ||
+                   (Existing.FromComp == To && Existing.ToComp == From);
+        });
+
+    if (bAlreadyExists)
     {
         return;
     }

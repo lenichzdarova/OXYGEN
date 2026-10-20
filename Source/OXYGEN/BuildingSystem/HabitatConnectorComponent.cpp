@@ -30,14 +30,10 @@ void UHabitatConnectorComponent::InitConnection(AActor* InModuleA, AActor* InMod
         return;
     }
 
-    UBuildingBlockStaticMeshComponent* FoundA = nullptr;
-    UBuildingBlockStaticMeshComponent* FoundB = nullptr;
+    const FVector ConnectorLoc = Owner->GetActorLocation();
 
-    TraceForComponent(Owner->GetActorForwardVector(), FoundA);
-    TraceForComponent(-Owner->GetActorForwardVector(), FoundB);
-
-    CompA = FoundA;
-    CompB = FoundB;
+    CompA = FindClosestConnectorComponent(InModuleA, ConnectorLoc);
+    CompB = FindClosestConnectorComponent(InModuleB, ConnectorLoc);
 
     if (CompA.IsValid())
     {
@@ -138,6 +134,38 @@ bool UHabitatConnectorComponent::TraceForComponent(const FVector& Direction, UBu
 
     OutComp = Comp;
     return true;
+}
+
+UBuildingBlockStaticMeshComponent* UHabitatConnectorComponent::FindClosestConnectorComponent(AActor* Module,
+    const FVector& NearLocation) const
+{
+    if (!Module)
+    {
+        return nullptr;
+    }
+
+    TArray<UBuildingBlockStaticMeshComponent*> Components;
+    Module->GetComponents<UBuildingBlockStaticMeshComponent>(Components);
+
+    UBuildingBlockStaticMeshComponent* Best = nullptr;
+    float BestDist = FLT_MAX;
+
+    for (UBuildingBlockStaticMeshComponent* Comp : Components)
+    {
+        if (!Comp || !Comp->HasVariant(Tag_Building_Mesh_Type_Connector))
+        {
+            continue;
+        }
+
+        const float Dist = FVector::Dist(Comp->GetComponentLocation(), NearLocation);
+        if (Dist < BestDist)
+        {
+            BestDist = Dist;
+            Best = Comp;
+        }
+    }
+
+    return Best;
 }
 
 void UHabitatConnectorComponent::OnModuleDestroyed(AActor* DestroyedActor)
