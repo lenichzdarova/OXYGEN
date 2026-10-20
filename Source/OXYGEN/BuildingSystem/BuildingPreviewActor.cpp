@@ -1,6 +1,6 @@
 #include "BuildingPreviewActor.h"
 
-UE_DEFINE_GAMEPLAY_TAG_COMMENT(Tag_Building_Mesh_Type_Connector, "Building.Mesh.Type.Connector", "Connector mesh variant")
+
 
 ABuildingPreviewActor::ABuildingPreviewActor()
 {
@@ -34,9 +34,14 @@ void ABuildingPreviewActor::UpdateConnectorPreview()
 }
 
 void ABuildingPreviewActor::CommitConnectors()
-{
-    // Здесь можно пометить коннекторы как финальные, если нужно.
-    // Пока просто очищаем список превью, не уничтожая акторы.
+{    
+    for (auto Element : PreviewConnectors)
+    {
+        if (Element)
+        {
+            Element->Commit();
+        }
+    }
     PreviewConnectors.Empty();
 }
 
@@ -143,10 +148,7 @@ const FConnectorLengthOption* ABuildingPreviewActor::FindBestLengthOption(float 
     return Best;
 }
 
-void ABuildingPreviewActor::SpawnPreviewConnector(
-    UBuildingBlockStaticMeshComponent* From,
-    UBuildingBlockStaticMeshComponent* To,
-    const FConnectorLengthOption& Option)
+void ABuildingPreviewActor::SpawnPreviewConnector( UBuildingBlockStaticMeshComponent* From, UBuildingBlockStaticMeshComponent* To, const FConnectorLengthOption& Option)
 {
     if (!Option.ConnectorClass)
     {
@@ -160,8 +162,7 @@ void ABuildingPreviewActor::SpawnPreviewConnector(
     const FVector Mid = (From->GetComponentLocation() + To->GetComponentLocation()) * 0.5f;
     const FRotator Rot = (To->GetComponentLocation() - From->GetComponentLocation()).Rotation();
 
-    AActor* Conn = GetWorld()->SpawnActor<AActor>(
-        Option.ConnectorClass, Mid, Rot, Params);
+    AGhostConnectorBase* Conn = GetWorld()->SpawnActor<AGhostConnectorBase>(Option.ConnectorClass, Mid, Rot, Params);
 
     if (Conn)
     {

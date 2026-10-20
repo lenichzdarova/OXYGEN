@@ -5,9 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "BuildingBlockStaticMeshComponent.h"
+#include "GhostConnectorBase.h"
+#include "HabitatConnectorComponent.h"
 #include "BuildingPreviewActor.generated.h"
 
-UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tag_Building_Mesh_Type_Connector)
+
 
 USTRUCT(BlueprintType)
 struct FConnectorLengthOption
@@ -18,7 +20,7 @@ struct FConnectorLengthOption
 	float Length = 100.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<AActor> ConnectorClass;
+	TSubclassOf<AGhostConnectorBase> ConnectorClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float Tolerance = 15.f;
@@ -52,19 +54,13 @@ public:
 
 protected:
 	UPROPERTY()
-	TArray<TObjectPtr<AActor>> PreviewConnectors;
+	TArray<TObjectPtr<AGhostConnectorBase>> PreviewConnectors;
 
 	TArray<UBuildingBlockStaticMeshComponent*> GetConnectorComponents() const;
 
-	bool TryFindConnectorTarget(
-		UBuildingBlockStaticMeshComponent* FromComp,
-		UBuildingBlockStaticMeshComponent*& OutTarget,
-		float& OutDistance) const;
+	bool TryFindConnectorTarget( UBuildingBlockStaticMeshComponent* FromComp, UBuildingBlockStaticMeshComponent*& OutTarget, float& OutDistance) const;
 
 	const FConnectorLengthOption* FindBestLengthOption(float Distance) const;
 
-	void SpawnPreviewConnector(
-		UBuildingBlockStaticMeshComponent* From,
-		UBuildingBlockStaticMeshComponent* To,
-		const FConnectorLengthOption& Option);
+	void SpawnPreviewConnector(	UBuildingBlockStaticMeshComponent* From, UBuildingBlockStaticMeshComponent* To,	const FConnectorLengthOption& Option);
 };

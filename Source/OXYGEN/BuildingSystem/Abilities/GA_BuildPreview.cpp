@@ -1,7 +1,7 @@
 // GA_BuildPreview.cpp
 #include "GA_BuildPreview.h"
-#include "BuildingToolEquipmentInstance.h"
-#include "BaseManagerSubsystem.h"
+#include "BuildingSystem/BuildingToolEquipmentInstance.h"
+#include "BuildingSystem/BaseManagerSubsystem.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Kismet/KismetSystemLibrary.h"

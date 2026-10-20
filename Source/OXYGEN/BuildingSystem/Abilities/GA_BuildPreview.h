@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BuildingToolEquipmentInstance.h"
+#include "BuildingSystem/BuildingToolEquipmentInstance.h"
 #include "Equipment/LyraGameplayAbility_FromEquipment.h"
 #include "GA_BuildPreview.generated.h"
 
