@@ -87,7 +87,7 @@ void UGA_Construction::Server_StartConstruction_Implementation(AActor* InPreview
 
     if (ABuildingPreviewActor* Preview = Cast<ABuildingPreviewActor>(InPreviewActor))
     {
-        Preview->CommitConnectors();
+        Preview->CommitConnectors(TargetActor);
     }
 
     ConstructionComp = TargetActor->FindComponentByClass<UHabitatConstructionComponent>();

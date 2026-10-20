@@ -26,6 +26,19 @@ struct FConnectorLengthOption
 	float Tolerance = 15.f;
 };
 
+USTRUCT()
+struct FPendingConnector
+{
+	GENERATED_BODY()
+
+	TWeakObjectPtr<UBuildingBlockStaticMeshComponent> FromComp; // на превью
+	TWeakObjectPtr<UBuildingBlockStaticMeshComponent> ToComp;   // на уже стоящем модуле
+	TSubclassOf<AActor> FinalConnectorClass;
+	FTransform SpawnTransform;
+	UPROPERTY()
+	TObjectPtr<AActor> PreviewConnector; // визуал
+};
+
 UCLASS(Abstract)
 class OXYGEN_API ABuildingPreviewActor : public AActor
 {
@@ -47,7 +60,7 @@ public:
 	void UpdateConnectorPreview();
 
 	UFUNCTION(BlueprintCallable, Category="Building")
-	void CommitConnectors();
+	void CommitConnectors(AActor* FinalModule);
 
 	UFUNCTION(BlueprintCallable, Category="Building")
 	void ClearPreviewConnectors();
@@ -63,4 +76,6 @@ protected:
 	const FConnectorLengthOption* FindBestLengthOption(float Distance) const;
 
 	void SpawnPreviewConnector(	UBuildingBlockStaticMeshComponent* From, UBuildingBlockStaticMeshComponent* To,	const FConnectorLengthOption& Option);
+	
+	TArray<FPendingConnector> PendingConnectors;
 };

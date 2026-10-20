@@ -18,13 +18,16 @@ public:
 	UHabitatConnectorComponent();
 
 	UFUNCTION(BlueprintCallable, Category="Building|Connector")
-	void InitConnection();
+	void InitConnection(AActor* ModuleA, AActor* ModuleB);
 
 	UFUNCTION(BlueprintCallable, Category="Building|Connector")
 	void RestoreConnections();
 
 	UFUNCTION(BlueprintCallable, Category="Building|Connector")
 	bool IsConnected() const;
+	
+	UFUNCTION()
+	UBuildingBlockStaticMeshComponent* FindConnectorComponent(AActor* Module) const;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Building|Connector")

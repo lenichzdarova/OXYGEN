@@ -33,16 +33,26 @@ void ABuildingPreviewActor::UpdateConnectorPreview()
     }
 }
 
-void ABuildingPreviewActor::CommitConnectors()
+void ABuildingPreviewActor::CommitConnectors(AActor* FinalModule)
 {    
-    for (auto Element : PreviewConnectors)
+    for (const FPendingConnector& Pending : PendingConnectors)
     {
-        if (Element)
+        if (!Pending.FinalConnectorClass || !Pending.ToComp.IsValid())
+            continue;
+
+        AActor* FinalConn = GetWorld()->SpawnActor<AActor>(
+            Pending.FinalConnectorClass, Pending.SpawnTransform);
+
+        if (UHabitatConnectorComponent* Conn = FinalConn->FindComponentByClass<UHabitatConnectorComponent>())
         {
-            Element->Commit();
+            Conn->InitConnection(FinalModule, Pending.ToComp->GetOwner());
         }
+
+        if (Pending.PreviewConnector)
+            Pending.PreviewConnector->Destroy();
     }
-    PreviewConnectors.Empty();
+
+    PendingConnectors.Empty();
 }
 
 void ABuildingPreviewActor::ClearPreviewConnectors()
@@ -150,22 +160,33 @@ const FConnectorLengthOption* ABuildingPreviewActor::FindBestLengthOption(float 
 
 void ABuildingPreviewActor::SpawnPreviewConnector( UBuildingBlockStaticMeshComponent* From, UBuildingBlockStaticMeshComponent* To, const FConnectorLengthOption& Option)
 {
-    if (!Option.ConnectorClass)
+    if (!From || !To || !Option.ConnectorClass)
     {
         return;
     }
+
+    const FVector Mid = (From->GetComponentLocation() + To->GetComponentLocation()) * 0.5f;
+    const FRotator Rot = (To->GetComponentLocation() - From->GetComponentLocation()).Rotation();
 
     FActorSpawnParameters Params;
     Params.Owner = this;
     Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-    const FVector Mid = (From->GetComponentLocation() + To->GetComponentLocation()) * 0.5f;
-    const FRotator Rot = (To->GetComponentLocation() - From->GetComponentLocation()).Rotation();
+    AGhostConnectorBase* PreviewConn = GetWorld()->SpawnActor<AGhostConnectorBase>(
+        Option.ConnectorClass, Mid, Rot, Params);
 
-    AGhostConnectorBase* Conn = GetWorld()->SpawnActor<AGhostConnectorBase>(Option.ConnectorClass, Mid, Rot, Params);
-
-    if (Conn)
+    if (!PreviewConn)
     {
-        PreviewConnectors.Add(Conn);
+        return;
     }
+
+    FPendingConnector Pending;
+    Pending.FromComp = From;
+    Pending.ToComp = To;
+    Pending.FinalConnectorClass = PreviewConn->PersistentClass;
+    Pending.SpawnTransform = PreviewConn->GetActorTransform();
+    Pending.PreviewConnector = PreviewConn;
+
+    PendingConnectors.Add(Pending);
+    PreviewConnectors.Add(PreviewConn);
 }

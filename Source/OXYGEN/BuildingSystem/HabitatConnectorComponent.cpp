@@ -17,37 +17,21 @@ void UHabitatConnectorComponent::EndPlay(const EEndPlayReason::Type EndPlayReaso
     Super::EndPlay(EndPlayReason);
 }
 
-void UHabitatConnectorComponent::InitConnection()
+void UHabitatConnectorComponent::InitConnection(AActor* InModuleA, AActor* InModuleB)
 {
     RestoreConnections();
 
-    AActor* Owner = GetOwner();
-    if (!Owner)
-    {
-        return;
-    }
+    ModuleA = InModuleA;
+    ModuleB = InModuleB;
 
-    UBuildingBlockStaticMeshComponent* FoundA = nullptr;
-    UBuildingBlockStaticMeshComponent* FoundB = nullptr;
-
-    if (!TraceForComponent(Owner->GetActorForwardVector(), FoundA))
-    {
-        return;
-    }
-    if (!TraceForComponent(-Owner->GetActorForwardVector(), FoundB))
-    {
-        return;
-    }
-
-    CompA = FoundA;
-    CompB = FoundB;
-    ModuleA = FoundA->GetOwner();
-    ModuleB = FoundB->GetOwner();
+    CompA = FindConnectorComponent(InModuleA);
+    CompB = FindConnectorComponent(InModuleB);
 
     if (CompA.IsValid())
     {
         CompA->SetVariant(Tag_Building_Mesh_Type_Connector);
     }
+
     if (CompB.IsValid())
     {
         CompB->SetVariant(Tag_Building_Mesh_Type_Connector);
@@ -57,6 +41,7 @@ void UHabitatConnectorComponent::InitConnection()
     {
         ModuleA->OnDestroyed.AddDynamic(this, &UHabitatConnectorComponent::OnModuleDestroyed);
     }
+
     if (ModuleB.IsValid())
     {
         ModuleB->OnDestroyed.AddDynamic(this, &UHabitatConnectorComponent::OnModuleDestroyed);
@@ -92,6 +77,27 @@ void UHabitatConnectorComponent::RestoreConnections()
 bool UHabitatConnectorComponent::IsConnected() const
 {
     return ModuleA.IsValid() && ModuleB.IsValid();
+}
+
+UBuildingBlockStaticMeshComponent* UHabitatConnectorComponent::FindConnectorComponent(AActor* Module) const
+{
+    if (!Module)
+    {
+        return nullptr;
+    }
+
+    TArray<UBuildingBlockStaticMeshComponent*> Components;
+    Module->GetComponents<UBuildingBlockStaticMeshComponent>(Components);
+
+    for (UBuildingBlockStaticMeshComponent* Comp : Components)
+    {
+        if (Comp && Comp->HasVariant(Tag_Building_Mesh_Type_Connector))
+        {
+            return Comp;
+        }
+    }
+
+    return nullptr;
 }
 
 bool UHabitatConnectorComponent::TraceForComponent(const FVector& Direction, UBuildingBlockStaticMeshComponent*& OutComp) const
