@@ -24,14 +24,25 @@ void UHabitatConnectorComponent::InitConnection(AActor* InModuleA, AActor* InMod
     ModuleA = InModuleA;
     ModuleB = InModuleB;
 
-    CompA = FindConnectorComponent(InModuleA);
-    CompB = FindConnectorComponent(InModuleB);
+    AActor* Owner = GetOwner();
+    if (!Owner)
+    {
+        return;
+    }
+
+    UBuildingBlockStaticMeshComponent* FoundA = nullptr;
+    UBuildingBlockStaticMeshComponent* FoundB = nullptr;
+
+    TraceForComponent(Owner->GetActorForwardVector(), FoundA);
+    TraceForComponent(-Owner->GetActorForwardVector(), FoundB);
+
+    CompA = FoundA;
+    CompB = FoundB;
 
     if (CompA.IsValid())
     {
         CompA->SetVariant(Tag_Building_Mesh_Type_Connector);
     }
-
     if (CompB.IsValid())
     {
         CompB->SetVariant(Tag_Building_Mesh_Type_Connector);
@@ -41,7 +52,6 @@ void UHabitatConnectorComponent::InitConnection(AActor* InModuleA, AActor* InMod
     {
         ModuleA->OnDestroyed.AddDynamic(this, &UHabitatConnectorComponent::OnModuleDestroyed);
     }
-
     if (ModuleB.IsValid())
     {
         ModuleB->OnDestroyed.AddDynamic(this, &UHabitatConnectorComponent::OnModuleDestroyed);

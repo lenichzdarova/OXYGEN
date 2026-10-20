@@ -38,10 +38,22 @@ void ABuildingPreviewActor::CommitConnectors(AActor* FinalModule)
     for (const FPendingConnector& Pending : PendingConnectors)
     {
         if (!Pending.FinalConnectorClass || !Pending.ToComp.IsValid())
+        {
             continue;
+        }
+
+        FActorSpawnParameters Params;
+        Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
         AActor* FinalConn = GetWorld()->SpawnActor<AActor>(
-            Pending.FinalConnectorClass, Pending.SpawnTransform);
+            Pending.FinalConnectorClass,
+            Pending.SpawnTransform,
+            Params);
+
+        if (!FinalConn)
+        {
+            continue;
+        }
 
         if (UHabitatConnectorComponent* Conn = FinalConn->FindComponentByClass<UHabitatConnectorComponent>())
         {
@@ -49,10 +61,13 @@ void ABuildingPreviewActor::CommitConnectors(AActor* FinalModule)
         }
 
         if (Pending.PreviewConnector)
+        {
             Pending.PreviewConnector->Destroy();
+        }
     }
 
     PendingConnectors.Empty();
+    PreviewConnectors.Empty();
 }
 
 void ABuildingPreviewActor::ClearPreviewConnectors()
