@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Engine/DataAsset.h"
 #include "OxygenBuildingBlueprintDefinition.generated.h"
 
@@ -15,6 +16,10 @@ class OXYGEN_API UOxygenBuildingBlueprintDefinition : public UPrimaryDataAsset
 	GENERATED_BODY()
 	
 public:
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Building")
+	FGameplayTag Id;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Building")
 	FText DisplayName;
 

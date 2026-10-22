@@ -48,20 +48,13 @@ void UGA_Construction::Server_StartConstruction_Implementation(AActor* InPreview
             ConstructionComp = Existing;
             TargetActor = Existing->GetOwner();
 
-            World->GetTimerManager().SetTimer(
-                ProgressTimer, this, &UGA_Construction::TickConstruction, 0.05f, true);
+            World->GetTimerManager().SetTimer(ProgressTimer, this, &UGA_Construction::TickConstruction, 0.05f, true);
             return;
         }
     }
 
-    // 2. Иначе ставим новый из превью
-    if (!InPreviewActor)
-    {
-        return;
-    }
-
     UBuildingToolEquipmentInstance* Equip = Cast<UBuildingToolEquipmentInstance>(GetAssociatedEquipment());
-    if (!Equip || !Equip->SelectedBlueprint || !Equip->SelectedBlueprint->FinalActor)
+    if (!Equip)
     {
         return;
     }
@@ -69,37 +62,47 @@ void UGA_Construction::Server_StartConstruction_Implementation(AActor* InPreview
     FActorSpawnParameters Params;
     Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-    TargetActor = World->SpawnActor<AActor>(
-        Equip->SelectedBlueprint->FinalActor,
-        InPreviewActor->GetActorTransform(),
-        Params);
-
-    if (!TargetActor)
+    // 2. Спавним все финальные объекты из PendingPieces (модуль + коннекторы)
+    for (const FPendingBuildPiece& Piece : Equip->PendingPieces)
     {
-        return;
-    }
-    
-    if (UBaseManagerSubsystem* BaseSys = World->GetSubsystem<UBaseManagerSubsystem>())
-    {
-        const FBox Bounds = TargetActor->GetComponentsBoundingBox(true);
-        BaseSys->RegisterPiece(TargetActor, Bounds);
+        if (!Piece.PreviewActor || !Piece.Definition || !Piece.Definition->FinalActor)
+        {
+            continue;
+        }
+
+        AActor* Spawned = World->SpawnActor<AActor>(Piece.Definition->FinalActor, Piece.PreviewActor->GetActorTransform(), Params);
+        if (!Spawned)
+        {
+            continue;
+        }
+
+        if (UBaseManagerSubsystem* BaseSys = World->GetSubsystem<UBaseManagerSubsystem>())
+        {
+            const FBox Bounds = Spawned->GetComponentsBoundingBox(true);
+            BaseSys->RegisterPiece(Spawned, Bounds);
+        }
+
+        if (UHabitatConstructionComponent* Comp = Spawned->FindComponentByClass<UHabitatConstructionComponent>())
+        {
+            Comp->StartConstruction();
+
+            // запоминаем первый как основной для тика прогресса
+            if (!ConstructionComp)
+            {
+                ConstructionComp = Comp;
+                TargetActor = Spawned;
+            }
+        }
+
+        Piece.PreviewActor->Destroy();
     }
 
-    if (ABuildingPreviewActor* Preview = Cast<ABuildingPreviewActor>(InPreviewActor))
-    {
-        Preview->CommitConnectors(TargetActor);
-    }
+    Equip->PendingPieces.Empty();
 
-    ConstructionComp = TargetActor->FindComponentByClass<UHabitatConstructionComponent>();
     if (ConstructionComp)
     {
-        ConstructionComp->StartConstruction();
+        World->GetTimerManager().SetTimer(ProgressTimer, this, &UGA_Construction::TickConstruction, 0.05f, true);
     }
-
-    InPreviewActor->Destroy();
-
-    World->GetTimerManager().SetTimer(
-        ProgressTimer, this, &UGA_Construction::TickConstruction, 0.05f, true);
 }
 
 void UGA_Construction::TickConstruction()

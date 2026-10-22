@@ -7,14 +7,13 @@
 #include "Equipment/LyraGameplayAbility_FromEquipment.h"
 #include "GA_BuildPreview.generated.h"
 
-/**
- * 
- */
+class UAbilityTask_UpdateShadowConnectors;
+
 UCLASS()
 class OXYGEN_API UGA_BuildPreview : public ULyraGameplayAbility_FromEquipment
 {
 	GENERATED_BODY()
-	
+
 public:
 	UGA_BuildPreview();
 
@@ -31,19 +30,26 @@ protected:
 	UPROPERTY()
 	TObjectPtr<AActor> PreviewActor;
 
+	UPROPERTY()
+	TObjectPtr<UAbilityTask_UpdateShadowConnectors> ShadowConnectorTask;
+
 	FTimerHandle UpdateTimer;
 
 	UFUNCTION()
 	void OnPreviewChanged(AActor* InPreview);
-	
+
 	UFUNCTION()
 	void HandlePreviewAdded(AActor* InPreview);
+
 	UFUNCTION()
 	void HandlePreviewRemoved(AActor* InPreview);
 
 	void StartPreviewUpdate();
 	void StopPreviewUpdate();
 	void UpdatePreview();
+
+	void StartShadowConnectorTask();
+	void StopShadowConnectorTask();
 
 	UFUNCTION(Server, Reliable)
 	void Server_UpdatePreview(FVector_NetQuantize DesiredLocation, FRotator DesiredRotation);

@@ -1,10 +1,12 @@
 // GA_BuildPreview.cpp
 #include "GA_BuildPreview.h"
+#include "GA_BuildPreview.h"
 #include "BuildingSystem/BuildingToolEquipmentInstance.h"
 #include "BuildingSystem/BaseManagerSubsystem.h"
+#include "AbilityTask_UpdateShadowConnectors.h"
+#include "BuildingSystem/BuildingPreviewActor.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 UGA_BuildPreview::UGA_BuildPreview()
 {
@@ -19,8 +21,8 @@ void UGA_BuildPreview::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
     if (UBuildingToolEquipmentInstance* Equip = GetBuildingEquipment())
-    {        
-        Equip->OnPreviewChanged.AddDynamic(this, &UGA_BuildPreview::OnPreviewChanged);        
+    {
+        Equip->OnPreviewChanged.AddDynamic(this, &UGA_BuildPreview::OnPreviewChanged);
 
         if (Equip->PreviewActor)
         {
@@ -37,6 +39,7 @@ void UGA_BuildPreview::EndAbility(const FGameplayAbilitySpecHandle Handle, const
     }
 
     StopPreviewUpdate();
+    StopShadowConnectorTask();
     PreviewActor = nullptr;
 
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
@@ -44,14 +47,13 @@ void UGA_BuildPreview::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 
 void UGA_BuildPreview::OnPreviewChanged(AActor* InPreview)
 {
-    
     if (InPreview)
     {
-        HandlePreviewAdded(InPreview);       
+        HandlePreviewAdded(InPreview);
     }
     else
     {
-        HandlePreviewRemoved(InPreview);        
+        HandlePreviewRemoved(InPreview);
     }
 }
 
@@ -59,12 +61,34 @@ void UGA_BuildPreview::HandlePreviewAdded(AActor* InPreview)
 {
     PreviewActor = InPreview;
     StartPreviewUpdate();
+    StartShadowConnectorTask();
 }
 
 void UGA_BuildPreview::HandlePreviewRemoved(AActor* InPreview)
 {
     StopPreviewUpdate();
+    StopShadowConnectorTask();
     PreviewActor = nullptr;
+}
+
+void UGA_BuildPreview::StartShadowConnectorTask()
+{
+    StopShadowConnectorTask();
+
+    if (ABuildingPreviewActor* Preview = Cast<ABuildingPreviewActor>(PreviewActor))
+    {
+        ShadowConnectorTask = UAbilityTask_UpdateShadowConnectors::UpdateShadowConnectors(this, Preview);
+        ShadowConnectorTask->ReadyForActivation();
+    }
+}
+
+void UGA_BuildPreview::StopShadowConnectorTask()
+{
+    if (ShadowConnectorTask)
+    {
+        ShadowConnectorTask->EndTask();
+        ShadowConnectorTask = nullptr;
+    }
 }
 
 UBuildingToolEquipmentInstance* UGA_BuildPreview::GetBuildingEquipment() const
@@ -94,8 +118,9 @@ void UGA_BuildPreview::UpdatePreview()
     {
         return;
     }
-    FRotator DesiredRotation {0, GetAvatarActorFromActorInfo()->GetActorRotation().Yaw, 0};
-    Server_UpdatePreview(GetLookLocation(), DesiredRotation);    
+
+    FRotator DesiredRotation{0.f, GetAvatarActorFromActorInfo()->GetActorRotation().Yaw, 0.f};
+    Server_UpdatePreview(GetLookLocation(), DesiredRotation);
 }
 
 FVector UGA_BuildPreview::GetLookLocation() const
@@ -104,26 +129,24 @@ FVector UGA_BuildPreview::GetLookLocation() const
     {
         if (PC->PlayerCameraManager)
         {
-            return PC->PlayerCameraManager->GetCameraLocation() +
-                   PC->PlayerCameraManager->GetCameraRotation().Vector() * PreviewDistance;
+            return PC->PlayerCameraManager->GetCameraLocation() + PC->PlayerCameraManager->GetCameraRotation().Vector() * PreviewDistance;
         }
-    }    
-    
+    }
+
     return FVector::ZeroVector;
 }
 
 void UGA_BuildPreview::Server_UpdatePreview_Implementation(FVector_NetQuantize DesiredLocation, FRotator DesiredRotation)
 {
-    
     if (!PreviewActor)
     {
         return;
-    }     
+    }
 
     if (UBaseManagerSubsystem* BaseSys = GetWorld()->GetSubsystem<UBaseManagerSubsystem>())
     {
         FTransform Desired(DesiredRotation, DesiredLocation);
         FTransform Final = BaseSys->GetPreviewTransform(Desired);
-        PreviewActor->SetActorTransform(Final);        
-    }    
+        PreviewActor->SetActorTransform(Final);
+    }
 }

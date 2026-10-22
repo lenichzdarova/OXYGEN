@@ -10,6 +10,18 @@ class UOxygenBuildingBlueprintDefinition;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPreviewChanged, AActor*, PreviewActor);
 
+USTRUCT()
+struct FPendingBuildPiece
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TObjectPtr<AActor> PreviewActor;
+
+	UPROPERTY()
+	TObjectPtr<UOxygenBuildingBlueprintDefinition> Definition;
+};
+
 UCLASS(BlueprintType)
 class OXYGEN_API UBuildingToolEquipmentInstance : public ULyraEquipmentInstance
 {
@@ -26,6 +38,9 @@ public:
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category="Building")
 	TObjectPtr<UOxygenBuildingBlueprintDefinition> SelectedBlueprint;
+	
+	UPROPERTY()
+	TArray<FPendingBuildPiece> PendingPieces;
 
 	UFUNCTION(BlueprintCallable, Category="Building")
 	void SetSelectedBlueprint(UOxygenBuildingBlueprintDefinition* InBlueprint);
