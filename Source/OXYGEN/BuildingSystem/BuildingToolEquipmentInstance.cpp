@@ -57,7 +57,18 @@ void UBuildingToolEquipmentInstance::SetSelectedBlueprint(UOxygenBuildingBluepri
 void UBuildingToolEquipmentInstance::ClearSelectedBlueprint()
 {
     if (!GetPawn()->HasAuthority())
+    {
         return;
+    }
+
+    for (const FPendingBuildPiece& Piece : PendingPieces)
+    {
+        if (Piece.PreviewActor)
+        {
+            Piece.PreviewActor->Destroy();
+        }
+    }
+    PendingPieces.Empty();
 
     if (PreviewActor)
     {

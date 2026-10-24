@@ -39,7 +39,7 @@ protected:
 	void StopProgress();
 
 	UFUNCTION(Server, Reliable)
-	void Server_StartConstruction(AActor* InPreviewActor);
+	void Server_StartConstruction();
 
 	ABuildingPreviewActor* GetPreviewActor() const;
 	UHabitatConstructionComponent* FindConstructionTarget() const;

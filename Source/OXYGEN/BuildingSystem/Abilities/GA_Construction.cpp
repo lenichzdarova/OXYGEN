@@ -25,10 +25,8 @@ void UGA_Construction::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
     if (!IsLocallyControlled())
     {
         return;
-    }
-
-    ABuildingPreviewActor* Preview = GetPreviewActor();
-    Server_StartConstruction(Preview);
+    }    
+    Server_StartConstruction();
 }
 
 void UGA_Construction::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -37,14 +35,15 @@ void UGA_Construction::EndAbility(const FGameplayAbilitySpecHandle Handle, const
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UGA_Construction::Server_StartConstruction_Implementation(AActor* InPreviewActor)
+void UGA_Construction::Server_StartConstruction_Implementation()
 {
     UWorld* World = GetWorld();
     if (!World)
     {
         return;
     }
-
+    // проверяем, есть ли недостоенный объект перед лицом игрока, чтобы начать его строительство
+    
     if (UHabitatConstructionComponent* Existing = FindConstructionTarget())
     {
         if (Existing->IsUnderConstruction())
@@ -64,6 +63,15 @@ void UGA_Construction::Server_StartConstruction_Implementation(AActor* InPreview
 
     TArray<FPendingBuildPiece> PiecesToSpawn = Equip->PendingPieces;
     Equip->PendingPieces.Empty();
+    
+    UE_LOG(LogTemp, Warning, TEXT("PendingPieces count: %d"), PiecesToSpawn.Num());
+    for (const FPendingBuildPiece& Piece : PiecesToSpawn)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("  Preview: %s, Def: %s, Final: %s"),
+            *GetNameSafe(Piece.PreviewActor),
+            *GetNameSafe(Piece.Definition),
+            Piece.Definition ? *GetNameSafe(Piece.Definition->FinalActor) : TEXT("null"));
+    }
 
     FActorSpawnParameters Params;
     Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
