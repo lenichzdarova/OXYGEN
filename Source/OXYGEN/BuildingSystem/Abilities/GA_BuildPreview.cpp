@@ -63,16 +63,31 @@ void UGA_BuildPreview::HandlePreviewAdded(AActor* InPreview)
     StartPreviewUpdate();
     StartShadowConnectorTask();
 
-    if (UBuildingToolEquipmentInstance* Equip = GetBuildingEquipment())
+    if (!InPreview)
     {
-        if (Equip->SelectedBlueprint)
-        {
-            FPendingBuildPiece Piece;
-            Piece.PreviewActor = InPreview;
-            Piece.Definition = Equip->SelectedBlueprint;
-            Equip->PendingPieces.Add(Piece);
-        }
+        return;
     }
+
+    UBuildingToolEquipmentInstance* Equip = GetBuildingEquipment();
+    if (!Equip || !Equip->SelectedBlueprint)
+    {
+        return;
+    }
+
+    const bool bAlreadyExists = Equip->PendingPieces.ContainsByPredicate([InPreview](const FPendingBuildPiece& Piece)
+    {
+        return Piece.PreviewActor == InPreview;
+    });
+
+    if (bAlreadyExists)
+    {
+        return;
+    }
+
+    FPendingBuildPiece Piece;
+    Piece.PreviewActor = InPreview;
+    Piece.Definition = Equip->SelectedBlueprint;
+    Equip->PendingPieces.Add(Piece);
 }
 
 void UGA_BuildPreview::HandlePreviewRemoved(AActor* InPreview)

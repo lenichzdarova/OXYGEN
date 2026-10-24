@@ -45,14 +45,12 @@ void UGA_Construction::Server_StartConstruction_Implementation(AActor* InPreview
         return;
     }
 
-    // 1. Если перед игроком уже есть строящийся объект — продолжаем его
     if (UHabitatConstructionComponent* Existing = FindConstructionTarget())
     {
         if (Existing->IsUnderConstruction())
         {
             ConstructionComp = Existing;
             TargetActor = Existing->GetOwner();
-
             World->GetTimerManager().SetTimer(ProgressTimer, this, &UGA_Construction::TickConstruction, 0.05f, true);
             return;
         }
@@ -64,11 +62,13 @@ void UGA_Construction::Server_StartConstruction_Implementation(AActor* InPreview
         return;
     }
 
+    TArray<FPendingBuildPiece> PiecesToSpawn = Equip->PendingPieces;
+    Equip->PendingPieces.Empty();
+
     FActorSpawnParameters Params;
     Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-    // 2. Спавним все финальные объекты из PendingPieces (модуль + коннекторы)
-    for (const FPendingBuildPiece& Piece : Equip->PendingPieces)
+    for (const FPendingBuildPiece& Piece : PiecesToSpawn)
     {
         if (!Piece.PreviewActor || !Piece.Definition || !Piece.Definition->FinalActor)
         {
@@ -91,7 +91,6 @@ void UGA_Construction::Server_StartConstruction_Implementation(AActor* InPreview
         {
             Comp->StartConstruction();
 
-            // запоминаем первый как основной для тика прогресса
             if (!ConstructionComp)
             {
                 ConstructionComp = Comp;
@@ -101,8 +100,6 @@ void UGA_Construction::Server_StartConstruction_Implementation(AActor* InPreview
 
         Piece.PreviewActor->Destroy();
     }
-
-    Equip->PendingPieces.Empty();
 
     if (ConstructionComp)
     {
