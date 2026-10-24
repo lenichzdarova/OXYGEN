@@ -22,6 +22,11 @@ void UGA_Construction::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+    if (!IsLocallyControlled())
+    {
+        return;
+    }
+
     ABuildingPreviewActor* Preview = GetPreviewActor();
     Server_StartConstruction(Preview);
 }
