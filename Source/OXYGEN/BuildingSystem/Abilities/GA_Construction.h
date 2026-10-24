@@ -40,7 +40,8 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void Server_StartConstruction();
+	
+	bool IsInputStillHeld() const;
 
-	ABuildingPreviewActor* GetPreviewActor() const;
 	UHabitatConstructionComponent* FindConstructionTarget() const;
 };

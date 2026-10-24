@@ -3,11 +3,8 @@
 
 #include "GA_Construction.h"
 
-#include "BuildingSystem/BaseManagerSubsystem.h"
+#include "Abilities/Tasks/AbilityTask_WaitInputRelease.h"
 #include "BuildingSystem/HabitatConstructionComponent.h"
-#include "BuildingSystem/BuildingPreviewActor.h"
-#include "BuildingSystem/BuildingToolEquipmentInstance.h"
-#include "BuildingSystem/OxygenBuildingBlueprintDefinition.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"
 
@@ -22,10 +19,7 @@ void UGA_Construction::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-    if (!IsLocallyControlled())
-    {
-        return;
-    }    
+    if (!IsLocallyControlled()) return; 
     Server_StartConstruction();
 }
 
@@ -35,89 +29,67 @@ void UGA_Construction::EndAbility(const FGameplayAbilitySpecHandle Handle, const
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
+bool UGA_Construction::IsInputStillHeld() const
+{    
+    return GetCurrentAbilitySpec()->InputPressed;
+}
+
 void UGA_Construction::Server_StartConstruction_Implementation()
-{
+{    
     UWorld* World = GetWorld();
     if (!World)
     {
         return;
     }
-    // проверяем, есть ли недостоенный объект перед лицом игрока, чтобы начать его строительство
-    
-    if (UHabitatConstructionComponent* Existing = FindConstructionTarget())
-    {
-        if (Existing->IsUnderConstruction())
-        {
-            ConstructionComp = Existing;
-            TargetActor = Existing->GetOwner();
-            World->GetTimerManager().SetTimer(ProgressTimer, this, &UGA_Construction::TickConstruction, 0.05f, true);
-            return;
-        }
-    }
 
-    UBuildingToolEquipmentInstance* Equip = Cast<UBuildingToolEquipmentInstance>(GetAssociatedEquipment());
-    if (!Equip)
+    UHabitatConstructionComponent* Existing = FindConstructionTarget();
+    if (!Existing)
     {
+        EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
         return;
     }
 
-    TArray<FPendingBuildPiece> PiecesToSpawn = Equip->PendingPieces;
-    Equip->PendingPieces.Empty();
-    
-    UE_LOG(LogTemp, Warning, TEXT("PendingPieces count: %d"), PiecesToSpawn.Num());
-    for (const FPendingBuildPiece& Piece : PiecesToSpawn)
+    if (!Existing->IsUnderConstruction() && !Existing->IsCompleted())
     {
-        UE_LOG(LogTemp, Warning, TEXT("  Preview: %s, Def: %s, Final: %s"),
-            *GetNameSafe(Piece.PreviewActor),
-            *GetNameSafe(Piece.Definition),
-            Piece.Definition ? *GetNameSafe(Piece.Definition->FinalActor) : TEXT("null"));
+        Existing->StartConstruction();
     }
 
-    FActorSpawnParameters Params;
-    Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-    for (const FPendingBuildPiece& Piece : PiecesToSpawn)
+    if (!Existing->IsUnderConstruction())
     {
-        if (!Piece.PreviewActor || !Piece.Definition || !Piece.Definition->FinalActor)
-        {
-            continue;
-        }
-
-        AActor* Spawned = World->SpawnActor<AActor>(Piece.Definition->FinalActor, Piece.PreviewActor->GetActorTransform(), Params);
-        if (!Spawned)
-        {
-            continue;
-        }
-
-        if (UBaseManagerSubsystem* BaseSys = World->GetSubsystem<UBaseManagerSubsystem>())
-        {
-            const FBox Bounds = Spawned->GetComponentsBoundingBox(true);
-            BaseSys->RegisterPiece(Spawned, Bounds);
-        }
-
-        if (UHabitatConstructionComponent* Comp = Spawned->FindComponentByClass<UHabitatConstructionComponent>())
-        {
-            Comp->StartConstruction();
-
-            if (!ConstructionComp)
-            {
-                ConstructionComp = Comp;
-                TargetActor = Spawned;
-            }
-        }
-
-        Piece.PreviewActor->Destroy();
+        EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+        return;
     }
 
-    if (ConstructionComp)
-    {
-        World->GetTimerManager().SetTimer(ProgressTimer, this, &UGA_Construction::TickConstruction, 0.05f, true);
-    }
+    ConstructionComp = Existing;
+    TargetActor = Existing->GetOwner();
+
+    World->GetTimerManager().SetTimer(ProgressTimer, this, &UGA_Construction::TickConstruction, 0.05f, true);
 }
 
 void UGA_Construction::TickConstruction()
 {
-    if (!ConstructionComp)
+    if (!ConstructionComp || !IsActive())
+    {
+        StopProgress();
+        return;
+    }
+
+    if (!IsInputStillHeld())
+    {
+        StopProgress();
+        EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+        return;
+    }
+
+    AActor* Avatar = GetAvatarActorFromActorInfo();
+    if (!Avatar || !TargetActor)
+    {
+        StopProgress();
+        return;
+    }
+
+    const float Dist = FVector::Dist(Avatar->GetActorLocation(), TargetActor->GetActorLocation());
+    if (Dist > TraceDistance)
     {
         StopProgress();
         return;
@@ -140,22 +112,10 @@ void UGA_Construction::StopProgress()
     }
 }
 
-ABuildingPreviewActor* UGA_Construction::GetPreviewActor() const
-{
-    if (UBuildingToolEquipmentInstance* Equip = Cast<UBuildingToolEquipmentInstance>(GetAssociatedEquipment()))
-    {
-        return Cast<ABuildingPreviewActor>(Equip->PreviewActor);
-    }
-    return nullptr;
-}
-
 UHabitatConstructionComponent* UGA_Construction::FindConstructionTarget() const
 {
     APlayerController* PC = GetActorInfo().PlayerController.Get();
-    if (!PC || !PC->PlayerCameraManager)
-    {
-        return nullptr;
-    }
+    if (!PC || !PC->PlayerCameraManager) return nullptr;
 
     const FVector Start = PC->PlayerCameraManager->GetCameraLocation();
     const FVector End = Start + PC->PlayerCameraManager->GetCameraRotation().Vector() * TraceDistance;
