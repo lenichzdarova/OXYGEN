@@ -20,19 +20,13 @@ public:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-protected:
-	UPROPERTY(EditDefaultsOnly, Category="Construction")
-	float ProgressPerSecond = 0.3f;
+protected:	
 
 	UPROPERTY(EditDefaultsOnly, Category="Construction")
-	float TraceDistance = 500.f;
+	float TraceDistance = 250.f;
 
-	UPROPERTY()
-	TObjectPtr<AActor> TargetActor;
 
-	UPROPERTY()
-	TObjectPtr<UHabitatConstructionComponent> ConstructionComp;
-
+	float TimerRate = 0.05f;
 	FTimerHandle ProgressTimer;
 
 	void TickConstruction();

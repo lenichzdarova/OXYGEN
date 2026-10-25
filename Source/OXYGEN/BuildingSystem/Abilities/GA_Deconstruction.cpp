@@ -32,7 +32,7 @@ void UGA_Deconstruction::Server_StartDeconstruction_Implementation()
         return;
     }
 
-    ConstructionComp->StartDeconstruction();
+   // ConstructionComp->StartDeconstruction();
 
     if (UWorld* World = GetWorld())
     {
@@ -52,7 +52,7 @@ void UGA_Deconstruction::TickDeconstruction()
     const float NewProgress = ConstructionComp->GetProgress() - ProgressPerSecond * 0.05f;
     if (NewProgress <= 0.f)
     {
-        ConstructionComp->CompleteDeconstruction();
+        //ConstructionComp->CompleteDeconstruction();
         StopProgress();
         EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
         return;

@@ -10,107 +10,35 @@ UHabitatConstructionComponent::UHabitatConstructionComponent()
     SetIsReplicatedByDefault(true);
 }
 
+bool UHabitatConstructionComponent::IsUnderConstruction() const
+{
+    return ConstructionProgress < 1.f;
+}
+
 void UHabitatConstructionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(UHabitatConstructionComponent, ConstructionProgress);
-    DOREPLIFETIME(UHabitatConstructionComponent, bIsUnderConstruction);
-    DOREPLIFETIME(UHabitatConstructionComponent, bIsCompleted);
 }
 
-void UHabitatConstructionComponent::StartConstruction()
+void UHabitatConstructionComponent::PerformConstruction()
 {
-    if (bIsUnderConstruction || bIsCompleted)
-    {
-        return;
-    }
-
-    bIsUnderConstruction = true;
-    bIsCompleted = false;
-    ConstructionProgress = 0.f;
-
-    OnConstructionStarted.Broadcast();
-    OnProgressChanged.Broadcast(ConstructionProgress);
-    OnRep_State();
+    auto DeltaTime = GetWorld()->GetDeltaSeconds();
+    float Progress = ProgressDeltaPerSecond * DeltaTime;
+    AddConstructionProgress(Progress);
 }
 
 void UHabitatConstructionComponent::AddConstructionProgress(float Amount)
 {
-    if (!bIsUnderConstruction || bIsCompleted || Amount <= 0.f)
+    if (!IsUnderConstruction())
     {
+        OnConstructionCompleted.Broadcast();
         return;
     }
-
-    if (!ConsumeResources(Amount))
-    {
-        return;
-    }
-
+    
     ConstructionProgress = FMath::Clamp(ConstructionProgress + Amount, 0.f, 1.f);
+    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Construction progress: ") + FString::SanitizeFloat(ConstructionProgress));
     OnRep_ConstructionProgress();
-
-    if (bAutoCompleteAtFull && ConstructionProgress >= 1.f)
-    {
-        CompleteConstruction();
-    }
-}
-
-void UHabitatConstructionComponent::CompleteConstruction()
-{
-    if (bIsCompleted)
-    {
-        return;
-    }
-
-    ConstructionProgress = 1.f;
-    bIsUnderConstruction = false;
-    bIsCompleted = true;
-
-    OnProgressChanged.Broadcast(ConstructionProgress);
-    OnConstructionCompleted.Broadcast();
-    OnRep_State();
-}
-
-void UHabitatConstructionComponent::CancelConstruction()
-{
-    if (!bIsUnderConstruction)
-    {
-        return;
-    }
-
-    RefundResources(ConstructionProgress);
-
-    bIsUnderConstruction = false;
-    ConstructionProgress = 0.f;
-
-    OnConstructionCancelled.Broadcast();
-    OnRep_State();
-}
-
-void UHabitatConstructionComponent::StartDeconstruction()
-{
-    if (!bIsCompleted)
-    {
-        return;
-    }
-
-    bIsCompleted = false;
-    bIsUnderConstruction = true;
-
-    OnDeconstructionStarted.Broadcast();
-    OnRep_State();
-}
-
-void UHabitatConstructionComponent::CompleteDeconstruction()
-{
-    RefundResources(1.f);
-
-    bIsUnderConstruction = false;
-    bIsCompleted = false;
-    ConstructionProgress = 0.f;
-
-    OnDeconstructionCompleted.Broadcast();
-    OnRep_State();
 }
 
 void UHabitatConstructionComponent::OnRep_ConstructionProgress()

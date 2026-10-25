@@ -36,47 +36,28 @@ UPROPERTY(BlueprintAssignable, Category="Building")
     UPROPERTY(BlueprintAssignable, Category="Building")
     FOnConstructionProgressChanged OnProgressChanged;
 
-    UFUNCTION(BlueprintCallable, Category="Building")
-    void StartConstruction();
-
+	void PerformConstruction();
+	
     UFUNCTION(BlueprintCallable, Category="Building")
     void AddConstructionProgress(float Amount);
-
-    UFUNCTION(BlueprintCallable, Category="Building")
-    void CompleteConstruction();
-
-    UFUNCTION(BlueprintCallable, Category="Building")
-    void CancelConstruction();
-
-    UFUNCTION(BlueprintCallable, Category="Building")
-    void StartDeconstruction();
-
-    UFUNCTION(BlueprintCallable, Category="Building")
-    void CompleteDeconstruction();
+	
+	UFUNCTION(BlueprintCallable, Category="Building")
+	float GetConstructionRate() { return ProgressDeltaPerSecond; }
 
     UFUNCTION(BlueprintPure, Category="Building")
     float GetProgress() const { return ConstructionProgress; }
 
     UFUNCTION(BlueprintPure, Category="Building")
-    bool IsUnderConstruction() const { return bIsUnderConstruction; }
-
-    UFUNCTION(BlueprintPure, Category="Building")
-    bool IsCompleted() const { return bIsCompleted; }
+    bool IsUnderConstruction() const;    
 
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
     UPROPERTY(ReplicatedUsing=OnRep_ConstructionProgress, BlueprintReadOnly, Category="Building")
-    float ConstructionProgress = 0.f;
-
-    UPROPERTY(ReplicatedUsing=OnRep_State, BlueprintReadOnly, Category="Building")
-    bool bIsUnderConstruction = false;
-
-    UPROPERTY(ReplicatedUsing=OnRep_State, BlueprintReadOnly, Category="Building")
-    bool bIsCompleted = false;
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Building")
-    bool bAutoCompleteAtFull = true;
+    float ConstructionProgress = 0.f;   
+	
+	UPROPERTY()
+	float ProgressDeltaPerSecond = 0.15f;
 
     UFUNCTION()
     void OnRep_ConstructionProgress();
