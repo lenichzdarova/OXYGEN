@@ -58,6 +58,7 @@ public:
 	UE_API virtual bool UpdatePlayerStartSpot(AController* Player, const FString& Portal, FString& OutErrorMessage) override;
 	UE_API virtual void GenericPlayerInitialization(AController* NewPlayer) override;
 	UE_API virtual void FailedToRestartPlayer(AController* NewPlayer) override;
+	UE_API virtual void Logout(AController* Exiting) override;
 	//~End of AGameModeBase interface
 
 	// Restart (respawn) the specified player or bot next frame
@@ -84,6 +85,8 @@ protected:
 
 	UFUNCTION()
 	UE_API void OnUserInitializedForDedicatedServer(const UCommonUserInfo* UserInfo, bool bSuccess, FText Error, ECommonUserPrivilege RequestedPrivilege, ECommonUserOnlineContext OnlineContext);
+
+	void InitializeSaveSession();
 };
 
 #undef UE_API
