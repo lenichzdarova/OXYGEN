@@ -27,6 +27,7 @@
 #include "CommonSessionSubsystem.h"
 #include "TimerManager.h"
 #include "GameMapsSettings.h"
+#include "Save/SaveManager.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(LyraGameMode)
 
@@ -304,6 +305,8 @@ void ALyraGameMode::OnMatchAssignmentGiven(FPrimaryAssetId ExperienceId, const F
 
 void ALyraGameMode::OnExperienceLoaded(const ULyraExperienceDefinition* CurrentExperience)
 {
+	InitializeSaveSession();
+
 	// Spawn any players that are already attached
 	//@TODO: Here we're handling only *player* controllers, but in GetDefaultPawnClassForController_Implementation we skipped all controllers
 	// GetDefaultPawnClassForController_Implementation might only be getting called for players anyways
@@ -316,6 +319,49 @@ void ALyraGameMode::OnExperienceLoaded(const ULyraExperienceDefinition* CurrentE
 			{
 				RestartPlayer(PC);
 			}
+		}
+	}
+}
+
+void ALyraGameMode::InitializeSaveSession()
+{
+	if (GetNetMode() == NM_Client)
+	{
+		return;
+	}
+
+	FString SlotName;
+	if (UGameplayStatics::HasOption(OptionsString, TEXT("SaveSlot")))
+	{
+		SlotName = UGameplayStatics::ParseOption(OptionsString, TEXT("SaveSlot"));
+	}
+	else
+	{
+		// Fallback: use a fixed or generated slot. For production, derive from session ID.
+		SlotName = TEXT("Session_Default");
+	}
+
+	if (USaveManager* SaveMgr = GetGameInstance()->GetSubsystem<USaveManager>())
+	{
+		SaveMgr->StartSession(SlotName);
+	}
+}
+
+void ALyraGameMode::Logout(AController* Exiting)
+{
+	Super::Logout(Exiting);
+
+	if (GetNetMode() == NM_Client)
+	{
+		return;
+	}
+
+	// Final save when the last player leaves the server
+	if (GetNumPlayers() <= 1) // after Super::Logout the count may already be decremented
+	{
+		if (USaveManager* SaveMgr = GetGameInstance()->GetSubsystem<USaveManager>())
+		{
+			SaveMgr->EndSession();
 		}
 	}
 }
