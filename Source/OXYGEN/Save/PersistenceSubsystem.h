@@ -49,10 +49,13 @@ struct FOxygenWorldData
 {
 	GENERATED_BODY()
 	
+	UPROPERTY(SaveGame)
 	TMap<FUniqueNetId, FSavedActorData> PlayersData;
 	
+	UPROPERTY(SaveGame)
 	TMap<FGameplayTag, TArray<uint8>> GameplayCoreObjectsData;	
 	
+	UPROPERTY(SaveGame)
 	TMap<FGuid, FSavedActorData> StoredActors;
 };
 /**
