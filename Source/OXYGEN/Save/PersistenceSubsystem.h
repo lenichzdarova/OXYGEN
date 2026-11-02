@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "PersistenceSubsystem.generated.h"
 
@@ -41,6 +42,18 @@ struct FSavedActorData
 
 	UPROPERTY()
 	TArray<FSavedComponentData> Components;
+};
+
+USTRUCT()
+struct FOxygenWorldData
+{
+	GENERATED_BODY()
+	
+	TMap<FUniqueNetId, FSavedActorData> PlayersData;
+	
+	TMap<FGameplayTag, TArray<uint8>> GameplayCoreObjectsData;	
+	
+	TMap<FGuid, FSavedActorData> StoredActors;
 };
 /**
  * 
